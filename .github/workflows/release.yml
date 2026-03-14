@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+      - '*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. 0.1.0 or v0.1.0)'
+        required: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -18,7 +24,15 @@ jobs:
     steps:
       - name: Get version from tag
         id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            tag="${{ inputs.tag }}"
+          fi
+          version="${tag#v}"
+          echo "version=${version}" >> $GITHUB_OUTPUT
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
@@ -26,7 +40,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ steps.get_version.outputs.tag }}
           release_name: Kira ${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
@@ -112,41 +126,41 @@ jobs:
       - name: Build binary (Unix)
         if: matrix.platform.os != 'windows-latest'
         working-directory: toolchain
-        run: cargo build --release --target ${{ matrix.platform.target }}
+        run: cargo build --release --bin kira --target ${{ matrix.platform.target }}
 
       - name: Build binary (Windows)
         if: matrix.platform.os == 'windows-latest'
         working-directory: toolchain
-        run: cargo build --release --target ${{ matrix.platform.target }}
+        run: cargo build --release --bin kira --target ${{ matrix.platform.target }}
+
+      - name: Build runtime static library
+        working-directory: toolchain
+        run: cargo build --release --lib --no-default-features --target ${{ matrix.platform.target }}
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/toolchain/target/runtime
 
       - name: Strip binary (Unix)
         if: matrix.platform.os != 'windows-latest'
-        run: strip toolchain/target/${{ matrix.platform.target }}/release/toolchain
-
-      - name: Rename binary
-        shell: bash
-        run: |
-          cd toolchain/target/${{ matrix.platform.target }}/release
-          if [ "${{ matrix.platform.os }}" = "windows-latest" ]; then
-            mv toolchain.exe kira.exe
-          else
-            mv toolchain kira
-          fi
+        run: strip toolchain/target/${{ matrix.platform.target }}/release/kira
 
       - name: Package as archive (Unix)
         if: matrix.platform.os != 'windows-latest'
         shell: bash
         run: |
-          cd toolchain/target/${{ matrix.platform.target }}/release
-          tar czvf ${{ matrix.platform.name }} kira
+          mkdir -p dist
+          cp toolchain/target/${{ matrix.platform.target }}/release/kira dist/
+          cp toolchain/target/runtime/${{ matrix.platform.target }}/release/libtoolchain.a dist/libkira_runtime.a
+          tar czvf ${{ matrix.platform.name }} -C dist kira libkira_runtime.a
           mv ${{ matrix.platform.name }} $GITHUB_WORKSPACE/
 
       - name: Package as archive (Windows)
         if: matrix.platform.os == 'windows-latest'
         shell: pwsh
         run: |
-          cd toolchain/target/${{ matrix.platform.target }}/release
-          Compress-Archive -Path kira.exe -DestinationPath ${{ matrix.platform.name }}
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Path toolchain/target/${{ matrix.platform.target }}/release/kira.exe -Destination dist/kira.exe
+          Copy-Item -Path toolchain/target/runtime/${{ matrix.platform.target }}/release/toolchain.lib -Destination dist/kira_runtime.lib
+          Compress-Archive -Path dist/kira.exe,dist/kira_runtime.lib -DestinationPath ${{ matrix.platform.name }}
           Move-Item -Path ${{ matrix.platform.name }} -Destination $env:GITHUB_WORKSPACE
 
       - name: Upload Release Asset
