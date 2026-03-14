@@ -4,6 +4,7 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use crate::compiler::{BackendKind, Chunk, CompiledModule};
 use crate::runtime::vm::RuntimeError;
 use crate::runtime::Value;
+use crate::runtime::ffi_loader::FfiLoader;
 
 use super::super::builtins::call_builtin;
 use super::execution::execute_chunk;
@@ -15,6 +16,7 @@ pub struct Vm {
     pub(crate) rng_state: u64,
     pub(crate) started_at: Instant,
     native_registry: HashMap<String, NativeHandler>,
+    ffi_loader: Option<FfiLoader>,
 }
 
 impl Default for Vm {
@@ -29,6 +31,7 @@ impl Default for Vm {
             rng_state: seed ^ 0x9E37_79B9_7F4A_7C15,
             started_at: Instant::now(),
             native_registry: HashMap::new(),
+            ffi_loader: None,
         }
     }
 }
@@ -40,6 +43,10 @@ impl Vm {
 
     pub fn register_native(&mut self, name: impl Into<String>, handler: NativeHandler) {
         self.native_registry.insert(name.into(), handler);
+    }
+
+    pub fn load_ffi(&mut self, ffi_loader: FfiLoader) {
+        self.ffi_loader = Some(ffi_loader);
     }
 
     pub fn run_entry(
@@ -65,6 +72,17 @@ impl Vm {
                 )));
             }
             return call_builtin(self, name, args);
+        }
+
+        // Check if it's an FFI function
+        if module.ffi.functions.contains_key(name) {
+            if let Some(ref ffi_loader) = self.ffi_loader {
+                return ffi_loader.call_ffi_function(name, args, &module.ffi);
+            } else {
+                return Err(RuntimeError(format!(
+                    "FFI function `{name}` called but FFI loader not initialized"
+                )));
+            }
         }
 
         let function = module

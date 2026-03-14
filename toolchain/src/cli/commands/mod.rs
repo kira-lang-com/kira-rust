@@ -6,6 +6,7 @@ mod install;
 mod new;
 mod package;
 mod run;
+mod run_module;
 mod toolchain;
 mod toolchain_state;
 
@@ -17,4 +18,5 @@ pub use install::cmd_install;
 pub use new::cmd_new;
 pub use package::cmd_package;
 pub use run::cmd_run;
+pub use run_module::cmd_run_module;
 pub use toolchain::{cmd_toolchain_install, cmd_toolchain_list, cmd_toolchain_path, cmd_toolchain_use};

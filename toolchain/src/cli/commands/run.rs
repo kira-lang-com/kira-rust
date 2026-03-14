@@ -21,21 +21,12 @@ pub fn cmd_run() {
     println!("  Compiling {} v{}", project.manifest.name, project.manifest.version);
 
     let start = std::time::Instant::now();
-    match build_default_project(&project_root, &out_root) {
-        Ok(binary) => {
-            let elapsed = start.elapsed();
-            println!("  Finished in {:.1}s → {}", elapsed.as_secs_f64(), binary.display());
-            println!("  Running {}", binary.display());
-            println!();
-        }
-        Err(e) => {
-            eprintln!("error: {}", e);
-            process::exit(1);
-        }
-    }
-
     match run_default_project(&project_root, &out_root) {
-        Ok(code) => process::exit(code),
+        Ok(code) => {
+            let elapsed = start.elapsed();
+            println!("  Finished in {:.1}s", elapsed.as_secs_f64());
+            process::exit(code);
+        }
         Err(e) => {
             eprintln!("error: {}", e);
             process::exit(1);

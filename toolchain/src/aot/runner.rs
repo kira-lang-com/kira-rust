@@ -115,8 +115,15 @@ fn resolve_toolchain_crate_root() -> Result<PathBuf, AotError> {
 }
 
 pub fn build_runner_project(runner_dir: &Path) -> Result<(), AotError> {
+    // Use a shared target directory to cache toolchain builds across all projects
+    let shared_target = get_shared_target_dir()?;
+    
     let mut cmd = Command::new("cargo");
-    cmd.arg("build").arg("--release").arg("--offline").current_dir(runner_dir);
+    cmd.arg("build")
+        .arg("--release")
+        .arg("--offline")
+        .env("CARGO_TARGET_DIR", &shared_target)
+        .current_dir(runner_dir);
     let status = cmd
         .status()
         .map_err(|error| AotError(format!("failed to execute runner cargo build: {error}")))?;
@@ -128,6 +135,7 @@ pub fn build_runner_project(runner_dir: &Path) -> Result<(), AotError> {
     let status = Command::new("cargo")
         .arg("build")
         .arg("--release")
+        .env("CARGO_TARGET_DIR", &shared_target)
         .current_dir(runner_dir)
         .status()
         .map_err(|error| AotError(format!("failed to execute runner cargo build: {error}")))?;
@@ -135,6 +143,25 @@ pub fn build_runner_project(runner_dir: &Path) -> Result<(), AotError> {
         return Err(AotError("runner cargo build failed".to_string()));
     }
     Ok(())
+}
+
+pub fn get_shared_target_dir() -> Result<PathBuf, AotError> {
+    // Use a shared target directory in the toolchain installation
+    if let Ok(exe) = env::current_exe() {
+        let exe = fs::canonicalize(&exe).unwrap_or(exe);
+        if let Some(exe_dir) = exe.parent() {
+            // For installed toolchains: use <install_root>/.cargo-cache
+            let cache_dir = exe_dir.join(".cargo-cache");
+            return Ok(cache_dir);
+        }
+    }
+    
+    // Fallback: use a directory in the user's home
+    if let Some(home) = dirs::home_dir() {
+        return Ok(home.join(".kira").join("cargo-cache"));
+    }
+    
+    Err(AotError("could not determine shared target directory".to_string()))
 }
 
 fn generate_runner_source(

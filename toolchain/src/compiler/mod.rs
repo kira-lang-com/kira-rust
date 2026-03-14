@@ -6,6 +6,7 @@ mod calls;
 mod ffi;
 mod eligibility;
 mod lowering;
+mod native_build;
 mod platforms;
 mod signatures;
 
@@ -17,6 +18,7 @@ pub use artifacts::{
     CompileError, CompiledFunction, CompiledModule, FfiFunction, FfiLink, FfiMetadata,
     FunctionArtifacts, FunctionSignature, Instruction,
 };
+pub use native_build::build_all_native_dependencies;
 
 use std::collections::HashMap;
 
