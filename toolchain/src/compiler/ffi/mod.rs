@@ -1,4 +1,6 @@
-mod header;
+pub(crate) mod header;
+
+pub(crate) use header::{CFunction, CType, ParsedHeader, parse_header};
 
 use std::collections::HashMap;
 use std::fs;
@@ -7,8 +9,6 @@ use std::path::{Path, PathBuf};
 use crate::ast::LinkDirective;
 use super::{Chunk, CompileError, FfiFunction, FfiLink, FfiMetadata, FunctionSignature, Instruction};
 use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
-
-use header::{parse_header, CType};
 
 pub fn build_ffi_metadata(
     types: &mut TypeSystem,
@@ -44,6 +44,15 @@ pub fn build_ffi_metadata(
         let parsed = parse_header(&source).map_err(CompileError)?;
 
         for name in parsed.opaque_typedefs {
+            if let Some(existing) = types.resolve_named(&name) {
+                if matches!(types.get(existing), KiraType::Opaque(_)) {
+                    continue;
+                }
+                return Err(CompileError(format!(
+                    "linked opaque type `{}` conflicts with an existing type",
+                    name
+                )));
+            }
             types.declare_opaque(&name).map_err(CompileError)?;
         }
 

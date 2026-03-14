@@ -1,8 +1,10 @@
-use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process;
 
+use super::install_assets::{copy_runtime_staticlib, copy_toolchain_sources};
+use super::install_build::{build_kira_binary, build_runtime_staticlib};
+use super::install_paths::{built_kira_binary_path, find_toolchain_src, profile_name, read_toolchain_version, runtime_staticlib_source_name};
 use super::state::{
     current_kira_path, exe_name, print_path_instructions, prompt_yes_no, set_current_kira_binary,
     toolchains_root,
@@ -92,6 +94,20 @@ pub fn cmd_install(release: bool, dev: bool) {
         process::exit(1);
     });
 
+    let runtime_target = toolchain_src.join("target").join("runtime");
+    build_runtime_staticlib(&toolchain_src, mode, &runtime_target).unwrap_or_else(|e| {
+        eprintln!("error: failed to build runtime static library: {e}");
+        process::exit(1);
+    });
+
+    let runtime_lib = runtime_target
+        .join(profile_name(mode))
+        .join(runtime_staticlib_source_name());
+    copy_runtime_staticlib(&runtime_lib, &dest_dir).unwrap_or_else(|e| {
+        eprintln!("error: failed to bundle runtime static library: {e}");
+        process::exit(1);
+    });
+
     println!("  ✓ Installed to: {}", dest_dir.display());
     println!("  Binary: {}", dest_bin.display());
 
@@ -108,146 +124,6 @@ pub fn cmd_install(release: bool, dev: bool) {
 
     println!();
     print_path_instructions();
-}
-
-fn find_toolchain_src() -> Result<PathBuf, String> {
-    // Try walking up from CWD first.
-    if let Ok(cwd) = env::current_dir() {
-        let mut dir = cwd.as_path();
-        loop {
-            let candidate = dir.join("toolchain").join("Cargo.toml");
-            if candidate.is_file() {
-                return Ok(dir.join("toolchain"));
-            }
-            let candidate = dir.join("Cargo.toml");
-            if candidate.is_file() && dir.file_name().and_then(|n| n.to_str()) == Some("toolchain") {
-                return Ok(dir.to_path_buf());
-            }
-            match dir.parent() {
-                Some(parent) => dir = parent,
-                None => break,
-            }
-        }
-    }
-
-    // Fallback: try deriving from current executable location (installed or repo builds).
-    if let Ok(exe) = env::current_exe() {
-        let exe = fs::canonicalize(&exe).unwrap_or(exe);
-        if let Some(exe_dir) = exe.parent() {
-            // Installed layout: `<install_root>/kira` and `<install_root>/toolchain/Cargo.toml`.
-            let candidate = exe_dir.join("toolchain").join("Cargo.toml");
-            if candidate.is_file() {
-                return Ok(exe_dir.join("toolchain"));
-            }
-
-            // Repo layout: `toolchain/target/<profile>/kira`.
-            if let Some(dir) = exe_dir.parent().and_then(|p| p.parent()) {
-                if dir.file_name().and_then(|n| n.to_str()) == Some("toolchain")
-                    && dir.join("Cargo.toml").is_file()
-                {
-                    return Ok(dir.to_path_buf());
-                }
-            }
-        }
-    }
-
-    Err("could not locate `toolchain/Cargo.toml`".to_string())
-}
-
-fn read_toolchain_version(toolchain_src: &Path) -> Result<String, String> {
-    let toml_path = toolchain_src.join("Cargo.toml");
-    let text = fs::read_to_string(&toml_path)
-        .map_err(|e| format!("failed to read `{}`: {}", toml_path.display(), e))?;
-
-    let mut in_package = false;
-    for raw in text.lines() {
-        let line = raw.trim();
-        if line.starts_with('[') && line.ends_with(']') {
-            in_package = line == "[package]";
-            continue;
-        }
-        if !in_package {
-            continue;
-        }
-        if let Some((k, v)) = line.split_once('=') {
-            if k.trim() != "version" {
-                continue;
-            }
-            let v = v.trim();
-            if v.starts_with('"') && v.ends_with('"') && v.len() >= 2 {
-                return Ok(v[1..v.len() - 1].to_string());
-            }
-        }
-    }
-
-    Err("could not parse toolchain version from toolchain/Cargo.toml".to_string())
-}
-
-fn build_kira_binary(toolchain_src: &Path, mode: InstallMode) -> Result<(), String> {
-    let mut cmd = process::Command::new("cargo");
-    cmd.arg("build").arg("--bin").arg("kira");
-    if mode == InstallMode::Release {
-        cmd.arg("--release");
-    }
-    cmd.current_dir(toolchain_src);
-
-    let status = cmd
-        .status()
-        .map_err(|e| format!("failed to run cargo build: {e}"))?;
-    if !status.success() {
-        return Err("cargo build failed".to_string());
-    }
-    Ok(())
-}
-
-fn built_kira_binary_path(toolchain_src: &Path, mode: InstallMode) -> PathBuf {
-    let profile = if mode == InstallMode::Release {
-        "release"
-    } else {
-        "debug"
-    };
-    toolchain_src.join("target").join(profile).join(exe_name("kira"))
-}
-
-fn copy_toolchain_sources(src: &Path, dst: &Path) -> Result<(), String> {
-    if !src.join("Cargo.toml").is_file() {
-        return Err(format!(
-            "toolchain source directory `{}` does not look like a Rust crate",
-            src.display()
-        ));
-    }
-    fs::create_dir_all(dst).map_err(|e| format!("failed to create `{}`: {}", dst.display(), e))?;
-    copy_dir_recursive_filtered(src, dst)
-}
-
-fn copy_dir_recursive_filtered(src: &Path, dst: &Path) -> Result<(), String> {
-    let entries = fs::read_dir(src)
-        .map_err(|e| format!("failed to read `{}`: {}", src.display(), e))?;
-    for entry in entries {
-        let entry = entry.map_err(|e| format!("failed to read dir entry: {e}"))?;
-        let path = entry.path();
-        let name = entry.file_name();
-        let name = name.to_string_lossy();
-
-        if name == "target" || name == ".git" {
-            continue;
-        }
-
-        let file_type = entry
-            .file_type()
-            .map_err(|e| format!("failed to stat `{}`: {}", path.display(), e))?;
-
-        let dest_path = dst.join(entry.file_name());
-        if file_type.is_dir() {
-            fs::create_dir_all(&dest_path)
-                .map_err(|e| format!("failed to create `{}`: {}", dest_path.display(), e))?;
-            copy_dir_recursive_filtered(&path, &dest_path)?;
-        } else if file_type.is_file() {
-            fs::copy(&path, &dest_path)
-                .map_err(|e| format!("failed to copy `{}`: {}", path.display(), e))?;
-        }
-    }
-    Ok(())
 }
 
 fn make_executable(path: &Path) {

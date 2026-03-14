@@ -75,7 +75,7 @@ pub fn build_native_library(header_path: &Path) -> Result<Option<PathBuf>, Strin
 }
 
 pub fn build_all_native_dependencies(project_root: &Path, dependencies: &[(String, PathBuf)]) -> Result<(), String> {
-    for (name, header_path) in dependencies {
+    for (_name, header_path) in dependencies {
         let full_path = if header_path.is_absolute() {
             header_path.clone()
         } else {

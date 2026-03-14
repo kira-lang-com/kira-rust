@@ -5,13 +5,10 @@ use crate::compiler::{Chunk, CompileError, FunctionSignature, Instruction};
 use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
 use crate::runtime::Value;
 
-use super::assignments::lower_assignment;
 use super::calls::lower_call_expression;
 use super::literals::{lower_array_literal, lower_struct_literal};
 use super::operators::{lower_binary_operator, lower_cast_expression, lower_unary_expression};
 use super::infrastructure::LocalBinding;
-
-pub use super::assignments::lower_assignment as pub_lower_assignment;
 
 pub fn lower_expression(
     expression: &Expression,
@@ -143,4 +140,3 @@ fn lower_index_expression(
         _ => Err(CompileError("indexing requires an array value".to_string())),
     }
 }
-

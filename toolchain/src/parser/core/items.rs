@@ -56,7 +56,7 @@ pub fn program_parser<'src>(
 
 fn item_parser<'src>(
 ) -> impl Parser<'src, &'src str, TopLevelItem, RichError<'src>> + Clone {
-    choice((struct_parser(), function_parser()))
+    choice((struct_parser(), opaque_type_parser(), extern_function_parser(), function_parser()))
 }
 
 fn struct_parser<'src>(
@@ -96,6 +96,19 @@ fn struct_field_parser<'src>(
         })
 }
 
+fn opaque_type_parser<'src>(
+) -> impl Parser<'src, &'src str, TopLevelItem, RichError<'src>> + Clone {
+    keyword("opaque")
+        .ignore_then(identifier_parser())
+        .then_ignore(symbol(';'))
+        .map_with(|name, extra| {
+            TopLevelItem::OpaqueType(crate::ast::OpaqueTypeDefinition {
+                name,
+                span: span_to_range(extra.span()),
+            })
+        })
+}
+
 fn function_parser<'src>(
 ) -> impl Parser<'src, &'src str, TopLevelItem, RichError<'src>> + Clone {
     let expression = expression_parser();
@@ -115,6 +128,26 @@ fn function_parser<'src>(
                 params,
                 return_type,
                 body,
+                span: span_to_range(extra.span()),
+            })
+        })
+}
+
+fn extern_function_parser<'src>(
+) -> impl Parser<'src, &'src str, TopLevelItem, RichError<'src>> + Clone {
+    attributes_parser()
+        .then_ignore(keyword("extern"))
+        .then_ignore(keyword("func"))
+        .then(identifier_parser())
+        .then(parameters_parser())
+        .then(token("->").ignore_then(type_name_parser()).or_not())
+        .then_ignore(symbol(';'))
+        .map_with(|(((attributes, name), params), return_type), extra| {
+            TopLevelItem::ExternFunction(crate::ast::ExternFunctionDefinition {
+                attributes,
+                name,
+                params,
+                return_type,
                 span: span_to_range(extra.span()),
             })
         })

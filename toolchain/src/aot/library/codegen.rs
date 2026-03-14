@@ -21,7 +21,6 @@ use crate::aot::stack::{infer_stack_layout, StackState};
 
 pub struct ExportSpec {
     pub exported_functions: HashSet<String>,
-    pub exported_structs: HashSet<String>,
     pub closure_functions: HashSet<String>,
 }
 
@@ -937,9 +936,8 @@ impl<'ctx> CAbiCodegen<'ctx> {
     }
 
     fn ptr_sized_int_type(&self) -> inkwell::types::IntType<'ctx> {
-        self.target_machine
-            .get_target_data()
-            .ptr_sized_int_type_in_context(self.context, None)
+        let target_data = self.target_machine.get_target_data();
+        self.context.ptr_sized_int_type(&target_data, None)
     }
 
     fn ptr_to_int(&self, ptr: inkwell::values::PointerValue<'ctx>) -> Result<inkwell::values::IntValue<'ctx>, AotError> {

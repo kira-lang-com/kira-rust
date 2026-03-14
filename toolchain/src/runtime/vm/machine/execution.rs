@@ -1,4 +1,4 @@
-use crate::compiler::{Chunk, CompiledModule, Instruction};
+use crate::compiler::{Chunk, CompiledModule};
 use crate::runtime::vm::RuntimeError;
 use crate::runtime::Value;
 

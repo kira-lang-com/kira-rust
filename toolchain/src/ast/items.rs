@@ -31,6 +31,12 @@ pub struct StructDefinition {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OpaqueTypeDefinition {
+    pub name: Identifier,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Parameter {
     pub name: Identifier,
     pub type_name: TypeSyntax,
@@ -49,6 +55,15 @@ pub struct FunctionDefinition {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExternFunctionDefinition {
+    pub attributes: Vec<Attribute>,
+    pub name: Identifier,
+    pub params: Vec<Parameter>,
+    pub return_type: Option<TypeSyntax>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Import {
     pub path: Vec<Identifier>,
     pub span: Span,
@@ -56,7 +71,9 @@ pub struct Import {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TopLevelItem {
+    OpaqueType(OpaqueTypeDefinition),
     Struct(StructDefinition),
+    ExternFunction(ExternFunctionDefinition),
     Function(FunctionDefinition),
 }
 

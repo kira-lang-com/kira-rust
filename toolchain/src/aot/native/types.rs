@@ -72,9 +72,8 @@ impl<'ctx> NativeCodegen<'ctx> {
     }
 
     pub(in crate::aot::native) fn ptr_sized_int_type(&self) -> inkwell::types::IntType<'ctx> {
-        self.target_machine
-            .get_target_data()
-            .ptr_sized_int_type_in_context(self.context, None)
+        let target_data = self.target_machine.get_target_data();
+        self.context.ptr_sized_int_type(&target_data, None)
     }
 
     pub(in crate::aot::native) fn ptr_to_int(&self, ptr: PointerValue<'ctx>) -> Result<inkwell::values::IntValue<'ctx>, AotError> {

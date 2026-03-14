@@ -9,8 +9,9 @@ mod types;
 
 pub use expressions::{Expression, ExpressionKind, StructLiteralField};
 pub use items::{
-    ExecutionMode, FunctionDefinition, Import, LinkDirective, Parameter, Program, SourceFile,
-    StructDefinition, StructField, TopLevelItem,
+    ExecutionMode, ExternFunctionDefinition, FunctionDefinition, Import, LinkDirective,
+    OpaqueTypeDefinition, Parameter, Program, SourceFile, StructDefinition, StructField,
+    TopLevelItem,
 };
 pub use statements::{
     AssignStatement, AssignTarget, Block, ExpressionStatement, ForStatement, IfStatement,

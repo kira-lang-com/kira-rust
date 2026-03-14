@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::ast::{Expression, ExpressionKind};
 use crate::compiler::{functions::direct_callee_name, BuiltinFunction, CompileError, FunctionSignature};
-use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
+use crate::runtime::type_system::{KiraType, TypeSystem};
 
 use super::expressions::analyze_expression;
 use super::types::{type_is_native_eligible, ExpressionProfile, LocalBinding};

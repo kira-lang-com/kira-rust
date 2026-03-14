@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-use crate::compiler::{BackendKind, Chunk, CompiledModule};
+use crate::compiler::{BackendKind, CompiledModule};
 use crate::runtime::vm::RuntimeError;
 use crate::runtime::Value;
 use crate::runtime::ffi_loader::FfiLoader;
+use crate::runtime::c_api::KiraNativeHandler;
+use crate::runtime::c_api::vm::call_native_handler;
 
 use super::super::builtins::call_builtin;
 use super::execution::execute_chunk;
-
-pub type NativeHandler = fn(&mut Vm, &CompiledModule, Vec<Value>) -> Result<Value, RuntimeError>;
 
 pub struct Vm {
     pub(crate) output: Vec<String>,
     pub(crate) rng_state: u64,
     pub(crate) started_at: Instant,
-    native_registry: HashMap<String, NativeHandler>,
+    native_registry: HashMap<String, KiraNativeHandler>,
     ffi_loader: Option<FfiLoader>,
 }
 
@@ -41,7 +41,7 @@ impl Vm {
         &self.output
     }
 
-    pub fn register_native(&mut self, name: impl Into<String>, handler: NativeHandler) {
+    pub fn register_native(&mut self, name: impl Into<String>, handler: KiraNativeHandler) {
         self.native_registry.insert(name.into(), handler);
     }
 
@@ -61,7 +61,7 @@ impl Vm {
         &mut self,
         module: &CompiledModule,
         name: &str,
-        args: Vec<Value>,
+        mut args: Vec<Value>,
     ) -> Result<Value, RuntimeError> {
         if let Some(builtin) = module.builtins.get(name) {
             if builtin.signature.params.len() != args.len() {
@@ -101,7 +101,7 @@ impl Vm {
         if let Some(chunk) = function.artifacts.bytecode.as_ref() {
             if function.selected_backend == BackendKind::Native {
                 if let Some(handler) = self.native_registry.get(name).copied() {
-                    return handler(self, module, args);
+                    return call_native_handler(self, module, handler, &mut args);
                 }
             }
             return execute_chunk(self, module, chunk, args);
@@ -110,7 +110,7 @@ impl Vm {
         match function.selected_backend {
             BackendKind::Native => {
                 if let Some(handler) = self.native_registry.get(name).copied() {
-                    return handler(self, module, args);
+                    return call_native_handler(self, module, handler, &mut args);
                 }
                 let artifact = function.artifacts.aot.as_ref().ok_or_else(|| {
                     RuntimeError(format!("function `{name}` has no AOT artifact"))

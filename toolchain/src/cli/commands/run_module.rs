@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-use crate::compiler::CompiledModule;
+use crate::compiler::deserialize_module;
 use crate::runtime::vm::Vm;
 use crate::runtime::ffi_loader::FfiLoader;
 
@@ -16,7 +16,7 @@ pub fn cmd_run_module(module_path: &Path) {
         }
     };
 
-    let module: CompiledModule = match bincode::deserialize(&module_bytes) {
+    let module = match deserialize_module(&module_bytes) {
         Ok(m) => m,
         Err(e) => {
             eprintln!("error: failed to deserialize module: {}", e);

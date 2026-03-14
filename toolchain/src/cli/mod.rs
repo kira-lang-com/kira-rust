@@ -39,6 +39,8 @@ enum Commands {
         #[arg(long, conflicts_with = "lib")]
         bin: bool,
     },
+    /// Generate FFI bindings for linked headers
+    Ffi,
     /// Build and run the project immediately
     Run,
     /// Run a pre-compiled Kira module (internal use)
@@ -115,6 +117,7 @@ pub fn run() {
         Some(Commands::Install { release, dev }) => cmd_install(release, dev),
         Some(Commands::Build { lib, bin }) => cmd_build(lib, bin),
         Some(Commands::Run) => cmd_run(),
+        Some(Commands::Ffi) => cmd_ffi(),
         Some(Commands::RunModule { module }) => cmd_run_module(&module),
         Some(Commands::Check) => cmd_check(),
         Some(Commands::Clean) => cmd_clean(),

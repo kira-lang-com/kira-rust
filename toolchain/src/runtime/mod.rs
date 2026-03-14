@@ -1,3 +1,4 @@
+pub mod c_api;
 pub mod native_support;
 pub mod type_system;
 pub mod value;

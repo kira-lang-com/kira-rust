@@ -81,6 +81,7 @@ fn collect_export_spec(
                     exported_functions.insert(function.name.name.clone());
                 }
             }
+            _ => {}
         }
     }
 
@@ -133,7 +134,6 @@ fn collect_export_spec(
         },
         ExportSpec {
             exported_functions,
-            exported_structs,
             closure_functions: closure,
         },
     ))

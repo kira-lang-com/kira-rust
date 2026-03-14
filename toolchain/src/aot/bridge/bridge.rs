@@ -1,7 +1,6 @@
 use crate::compiler::{BackendKind, CompiledModule, FunctionSignature, Instruction};
 
 use crate::aot::error::AotError;
-use crate::aot::types::{rust_abi_type_name, unwrap_value_result, wrap_arg_as_value};
 use crate::aot::runner::mangle_ident;
 
 #[derive(Clone)]
@@ -66,59 +65,4 @@ pub fn collect_runtime_bridges(module: &CompiledModule) -> Result<Vec<BridgeSpec
     }
 
     Ok(bridges)
-}
-
-pub fn generate_bridge_function(
-    module: &CompiledModule,
-    bridge: &BridgeSpec,
-) -> Result<String, AotError> {
-    let args = bridge
-        .signature
-        .params
-        .iter()
-        .enumerate()
-        .map(|(index, type_id)| {
-            rust_abi_type_name(module, *type_id).map(|name| format!("arg{index}: {name}"))
-        })
-        .collect::<Result<Vec<_>, _>>()?
-        .join(", ");
-    let params = if args.is_empty() {
-        "ctx: *mut c_void".to_string()
-    } else {
-        format!("ctx: *mut c_void, {args}")
-    };
-    let ret = rust_abi_type_name(module, bridge.signature.return_type)?;
-    let ret_decl = if ret == "()" {
-        "".to_string()
-    } else {
-        format!(" -> {ret}")
-    };
-
-    let arg_values = bridge
-        .signature
-        .params
-        .iter()
-        .enumerate()
-        .map(|(index, type_id)| wrap_arg_as_value(module, &format!("arg{index}"), *type_id))
-        .collect::<Result<Vec<_>, _>>()?
-        .join(", ");
-
-    let unwrap = if ret == "()" {
-        "    match vm.run_function(module, CALLEE, args) {\n        Ok(Value::Unit) | Ok(_) => {}\n        Err(error) => panic!(\"bridge call failed: {}\", error),\n    }\n".to_string()
-    } else {
-        format!(
-            "    match vm.run_function(module, CALLEE, args) {{\n        Ok(result) => {},\n        Err(error) => panic!(\"bridge call failed: {{}}\", error),\n    }}\n",
-            unwrap_value_result(module, "result", bridge.signature.return_type)?
-        )
-    };
-
-    Ok(format!(
-        "#[no_mangle]\npub extern \"C\" fn {symbol}({params}){ret_decl} {{\n    const CALLEE: &str = \"{callee}\";\n    let ctx = unsafe {{ &mut *(ctx as *mut NativeRuntimeContext) }};\n    let vm = unsafe {{ &mut *ctx.vm }};\n    let module = unsafe {{ &*ctx.module }};\n    let args = vec![{arg_values}];\n{unwrap}}}\n\n",
-        symbol = bridge.symbol,
-        params = params,
-        ret_decl = ret_decl,
-        callee = bridge.callee,
-        arg_values = arg_values,
-        unwrap = unwrap
-    ))
 }

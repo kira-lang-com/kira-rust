@@ -7,9 +7,9 @@ struct Foo {
 
 int64_t add64(int64_t a, int64_t b) { return a + b; }
 
-FooRef foo_new(void) {
+FooRef foo_newa(void) {
     struct Foo* foo = (struct Foo*)malloc(sizeof(struct Foo));
-    foo->value = 123;
+    foo->value = 124;
     return foo;
 }
 

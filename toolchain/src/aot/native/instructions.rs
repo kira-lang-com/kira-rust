@@ -1,9 +1,9 @@
 // Basic instruction helpers (load, store, arithmetic, etc.)
 
-use inkwell::values::{BasicValueEnum, PointerValue};
+use inkwell::values::PointerValue;
 
 use crate::compiler::Chunk;
-use crate::runtime::type_system::{KiraType, TypeId};
+use crate::runtime::type_system::KiraType;
 
 use crate::aot::error::AotError;
 use crate::aot::stack::StackState;

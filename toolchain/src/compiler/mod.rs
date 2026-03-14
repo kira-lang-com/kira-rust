@@ -1,11 +1,12 @@
 mod build_artifacts;
 mod builtins;
-mod ffi;
+pub(crate) mod ffi;
 mod eligibility;
 mod functions;
 mod lowering;
 mod metadata;
 mod native_build;
+mod serialization;
 mod types;
 
 pub use types::{
@@ -13,6 +14,7 @@ pub use types::{
     CompiledFunction, CompiledModule, FfiFunction, FfiLink, FfiMetadata,
     FunctionArtifacts, FunctionSignature, Instruction,
 };
+pub use serialization::{deserialize_module, serialize_module};
 pub use native_build::build_all_native_dependencies;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,7 +36,7 @@ use crate::runtime::type_system::TypeSystem;
 use build_artifacts::build_aot_plan;
 use builtins::builtin_functions;
 use eligibility::is_native_eligible;
-use functions::{build_signature, collect_signatures};
+use functions::{build_extern_signature, build_signature, collect_signatures};
 use lowering::lower_function_body;
 use metadata::{build_platform_model, resolve_function_attributes};
 
@@ -58,10 +60,33 @@ fn compile_impl(program: &Program, project_root: Option<&std::path::Path>) -> Re
     let builtins = builtin_functions(&mut types);
     let mut functions = HashMap::new();
 
-    let (ffi, ffi_signatures) = ffi::build_ffi_metadata(&mut types, &program.links, project_root)?;
+    let (ffi, mut ffi_signatures) =
+        ffi::build_ffi_metadata(&mut types, &program.links, project_root)?;
+
+    let mut extern_signatures = HashMap::new();
+    for item in &program.items {
+        if let TopLevelItem::ExternFunction(function) = item {
+            let signature = build_extern_signature(&mut types, function)?;
+            if extern_signatures
+                .insert(function.name.name.clone(), signature)
+                .is_some()
+            {
+                return Err(CompileError(format!(
+                    "extern function `{}` is declared more than once",
+                    function.name.name
+                )));
+            }
+        }
+    }
 
     for item in &program.items {
         if let TopLevelItem::Function(function) = item {
+            if extern_signatures.contains_key(&function.name.name) {
+                return Err(CompileError(format!(
+                    "function `{}` conflicts with an extern declaration",
+                    function.name.name
+                )));
+            }
             let resolved = resolve_function_attributes(function, platform_model.as_ref())?;
             let signature = build_signature(&mut types, function)?;
             functions.insert(
@@ -76,6 +101,36 @@ fn compile_impl(program: &Program, project_root: Option<&std::path::Path>) -> Re
                 },
             );
         }
+    }
+
+    if !extern_signatures.is_empty() {
+        for (name, signature) in &extern_signatures {
+            let Some(ffi_signature) = ffi_signatures.get(name) else {
+                return Err(CompileError(format!(
+                    "extern function `{}` was not found in linked headers",
+                    name
+                )));
+            };
+            if ffi_signature.params != signature.params
+                || ffi_signature.return_type != signature.return_type
+            {
+                return Err(CompileError(format!(
+                    "extern function `{}` does not match linked header signature",
+                    name
+                )));
+            }
+        }
+
+        for name in ffi_signatures.keys() {
+            if !extern_signatures.contains_key(name) {
+                return Err(CompileError(format!(
+                    "linked function `{}` is missing from generated bindings",
+                    name
+                )));
+            }
+        }
+
+        ffi_signatures = extern_signatures;
     }
 
     let mut signatures = collect_signatures(&builtins, &functions);
@@ -184,12 +239,19 @@ fn compile_impl(program: &Program, project_root: Option<&std::path::Path>) -> Re
 
 fn register_struct_types(types: &mut TypeSystem, program: &Program) -> Result<(), CompileError> {
     for item in &program.items {
-        let TopLevelItem::Struct(definition) = item else {
-            continue;
-        };
-        types
-            .declare_struct(&definition.name.name)
-            .map_err(CompileError)?;
+        match item {
+            TopLevelItem::OpaqueType(definition) => {
+                types
+                    .declare_opaque(&definition.name.name)
+                    .map_err(CompileError)?;
+            }
+            TopLevelItem::Struct(definition) => {
+                types
+                    .declare_struct(&definition.name.name)
+                    .map_err(CompileError)?;
+            }
+            _ => {}
+        }
     }
 
     for item in &program.items {

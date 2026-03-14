@@ -19,6 +19,10 @@ pub enum Value {
 }
 
 impl Value {
+    pub fn from_f64(value: f64) -> Self {
+        Self::Float(OrderedFloat(value))
+    }
+
     pub fn display(&self) -> String {
         match self {
             Self::Unit => "()".to_string(),

@@ -52,6 +52,21 @@ pub fn resolve_graph(
                     )));
                 }
             }
+            if let TopLevelItem::ExternFunction(function) = item {
+                if let Some(previous) = global_functions.insert(
+                    function.name.name.clone(),
+                    FunctionOrigin {
+                        file_name: display_path(&module.relative_path),
+                    },
+                ) {
+                    return Err(ProjectError(format!(
+                        "duplicate function `{}` defined in `{}` and `{}`",
+                        function.name.name,
+                        previous.file_name,
+                        display_path(&module.relative_path)
+                    )));
+                }
+            }
         }
     }
 
@@ -70,8 +85,14 @@ pub fn resolve_graph(
         }
         for item in &module.file.items {
             match item {
+                TopLevelItem::OpaqueType(definition) => {
+                    resolved_items.push(TopLevelItem::OpaqueType(definition.clone()));
+                }
                 TopLevelItem::Struct(definition) => {
                     resolved_items.push(TopLevelItem::Struct(definition.clone()));
+                }
+                TopLevelItem::ExternFunction(function) => {
+                    resolved_items.push(TopLevelItem::ExternFunction(function.clone()));
                 }
                 TopLevelItem::Function(function) => {
                     let mut resolved = function.clone();

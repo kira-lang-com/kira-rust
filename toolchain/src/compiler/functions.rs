@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use crate::ast::{Expression, ExpressionKind, FunctionDefinition};
+use crate::ast::{Expression, ExternFunctionDefinition, ExpressionKind, FunctionDefinition};
 use crate::runtime::type_system::TypeSystem;
 
 use super::{BuiltinFunction, CompileError, CompiledFunction, FunctionSignature};
@@ -47,6 +47,42 @@ pub(super) fn build_signature(
         Some(type_name) => types.ensure_named(&type_name.name).ok_or_else(|| {
             CompileError(format!(
                 "unknown return type `{}` on function `{}`",
+                type_name.name, function.name.name
+            ))
+        })?,
+        None => types.unit(),
+    };
+
+    let function_type = types.register_function(params.clone(), return_type);
+
+    Ok(FunctionSignature {
+        params,
+        return_type,
+        function_type,
+    })
+}
+
+pub(super) fn build_extern_signature(
+    types: &mut TypeSystem,
+    function: &ExternFunctionDefinition,
+) -> Result<FunctionSignature, CompileError> {
+    let mut params = Vec::with_capacity(function.params.len());
+    for parameter in &function.params {
+        let type_id = types
+            .ensure_named(&parameter.type_name.name)
+            .ok_or_else(|| {
+                CompileError(format!(
+                    "unknown parameter type `{}` on extern function `{}`",
+                    parameter.type_name.name, function.name.name
+                ))
+            })?;
+        params.push(type_id);
+    }
+
+    let return_type = match &function.return_type {
+        Some(type_name) => types.ensure_named(&type_name.name).ok_or_else(|| {
+            CompileError(format!(
+                "unknown return type `{}` on extern function `{}`",
                 type_name.name, function.name.name
             ))
         })?,

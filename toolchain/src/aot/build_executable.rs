@@ -5,7 +5,8 @@ use crate::compiler::compile_project;
 use crate::project::load_project;
 
 use super::error::AotError;
-use super::runner::{build_runner_project, resolve_output_root, write_runner_project, get_shared_target_dir};
+use super::runner::{build_c_runner_executable, resolve_output_root};
+use crate::compiler::serialize_module;
 
 pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<PathBuf, AotError> {
     use crate::compiler::build_all_native_dependencies;
@@ -39,8 +40,7 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
     let module_path = out_root.join("compiled_module.bin");
     fs::write(
         &module_path,
-        bincode::serialize(&module)
-            .map_err(|error| AotError(format!("module serialization failed: {error}")))?,
+        serialize_module(&module).map_err(AotError)?,
     )
     .map_err(|error| {
         AotError(format!(
@@ -71,33 +71,19 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
     })?;
     let native_archive = build_native_archive(&project.manifest.name, &module, &staging_dir)?;
 
-    // Generate runner project (Rust code that embeds VM and bytecode)
+    let final_binary = debug_dir.join(exe_name(&project.manifest.name));
+
+    // Generate and build the standalone runner (C + clang, no Cargo)
     let runner_dir = out_root.join(".kira-build").join(&project.manifest.name).join("runner");
-    write_runner_project(
+    build_c_runner_executable(
         &runner_dir,
         &project.manifest.name,
         &module,
         &module_path,
         &native_archive,
         &project.entry_symbol,
+        &final_binary,
     )?;
-
-    // Build the runner project with Cargo
-    build_runner_project(&runner_dir)?;
-
-    // Copy the compiled binary to target/debug/projectname
-    let shared_target = get_shared_target_dir()?;
-    let runner_binary = shared_target.join("release").join(&project.manifest.name);
-    let final_binary = debug_dir.join(&project.manifest.name);
-    
-    fs::copy(&runner_binary, &final_binary).map_err(|error| {
-        AotError(format!(
-            "failed to copy runner binary from `{}` to `{}`: {}",
-            runner_binary.display(),
-            final_binary.display(),
-            error
-        ))
-    })?;
 
     // Copy the compiled module to the same directory as the executable
     let final_module = debug_dir.join("compiled_module.bin");
@@ -111,6 +97,14 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
     })?;
 
     Ok(final_binary)
+}
+
+fn exe_name(base: &str) -> String {
+    if cfg!(target_os = "windows") {
+        format!("{base}.exe")
+    } else {
+        base.to_string()
+    }
 }
 
 pub fn run_default_project(project_root: &Path, _out_root: &Path) -> Result<i32, AotError> {
