@@ -27,29 +27,35 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
         .map_err(|error| AotError(error.to_string()))?;
 
     let out_root = resolve_output_root(out_root)?;
-    remove_path_if_exists(&out_root.join("build"), "legacy build output")?;
-    remove_path_if_exists(&out_root.join("compiled_module.bin"), "legacy compiled module")?;
-
-    let final_bundle_dir = out_root.join(&project.manifest.name);
-    fs::create_dir_all(&final_bundle_dir).map_err(|error| {
+    fs::create_dir_all(&out_root).map_err(|error| {
         AotError(format!(
-            "failed to create final app bundle `{}`: {}",
-            final_bundle_dir.display(),
+            "failed to create output directory `{}`: {}",
+            out_root.display(),
             error
         ))
     })?;
 
-    // Serialize the compiled module
-    let final_module = final_bundle_dir.join("compiled_module.bin");
+    // Serialize the compiled module to target/compiled_module.bin
+    let module_path = out_root.join("compiled_module.bin");
     fs::write(
-        &final_module,
+        &module_path,
         bincode::serialize(&module)
             .map_err(|error| AotError(format!("module serialization failed: {error}")))?,
     )
     .map_err(|error| {
         AotError(format!(
             "failed to write `{}`: {}",
-            final_module.display(),
+            module_path.display(),
+            error
+        ))
+    })?;
+
+    // Create debug directory for the executable
+    let debug_dir = out_root.join("debug");
+    fs::create_dir_all(&debug_dir).map_err(|error| {
+        AotError(format!(
+            "failed to create debug directory `{}`: {}",
+            debug_dir.display(),
             error
         ))
     })?;
@@ -58,11 +64,11 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
     let kira_binary = env::current_exe()
         .map_err(|e| AotError(format!("Failed to get current executable path: {}", e)))?;
     
-    // Create a wrapper script/executable
+    // Create executable at target/debug/projectname
     let binary_name = project.manifest.name.clone();
-    let final_binary = final_bundle_dir.join(&binary_name);
+    let final_binary = debug_dir.join(&binary_name);
     
-    create_wrapper_script(&final_binary, &kira_binary, &final_module)?;
+    create_wrapper_script(&final_binary, &kira_binary, &module_path)?;
 
     Ok(final_binary)
 }
@@ -74,15 +80,15 @@ fn create_wrapper_script(
 ) -> Result<(), AotError> {
     #[cfg(unix)]
     {
-        // On Unix, create a shell script wrapper
+        // Create a shell script that runs the compiled module via the Kira VM
         let script = format!(
-            "#!/bin/sh\n# Kira application wrapper\nexec \"{}\" run-module \"{}\" \"$@\"\n",
+            "#!/bin/sh\nexec \"{}\" run-module \"{}\" \"$@\"\n",
             kira_binary.display(),
             module_path.display()
         );
         fs::write(wrapper_path, script).map_err(|e| {
             AotError(format!(
-                "failed to write wrapper script `{}`: {}",
+                "failed to write executable `{}`: {}",
                 wrapper_path.display(),
                 e
             ))
@@ -100,16 +106,16 @@ fn create_wrapper_script(
     
     #[cfg(windows)]
     {
-        // On Windows, create a batch file wrapper
+        // Create a batch file that runs the compiled module via the Kira VM
         let script = format!(
-            "@echo off\r\nrem Kira application wrapper\r\n\"{}\" run-module \"{}\" %*\r\n",
+            "@echo off\r\n\"{}\" run-module \"{}\" %*\r\n",
             kira_binary.display(),
             module_path.display()
         );
         let bat_path = wrapper_path.with_extension("bat");
         fs::write(&bat_path, script).map_err(|e| {
             AotError(format!(
-                "failed to write wrapper batch file `{}`: {}",
+                "failed to write executable `{}`: {}",
                 bat_path.display(),
                 e
             ))
