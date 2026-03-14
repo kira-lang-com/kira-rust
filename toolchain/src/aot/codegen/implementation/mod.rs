@@ -4,7 +4,8 @@
 mod calls;
 mod context;
 mod control_flow;
-mod emit;
+mod emit_dispatch;
+mod emit_function;
 mod instructions;
 mod runtime_arrays;
 mod runtime_base;
