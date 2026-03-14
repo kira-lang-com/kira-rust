@@ -1,9 +1,9 @@
 use crate::compiler::{CompiledFunction, CompiledModule};
 use crate::runtime::type_system::{KiraType, TypeId};
 
-use super::error::AotError;
-use super::types::{rust_abi_type_name, wrap_arg_as_value, wrap_rust_result};
-use super::utils::{indent, mangle_ident};
+use crate::aot::error::AotError;
+use crate::aot::types::{rust_abi_type_name, wrap_arg_as_value, wrap_rust_result};
+use crate::aot::runner::{indent, mangle_ident};
 
 pub fn generate_extern_decl(
     module: &CompiledModule,

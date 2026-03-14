@@ -7,7 +7,7 @@ use crate::compiler::FunctionSignature;
 use crate::runtime::type_system::KiraType;
 
 use crate::aot::error::AotError;
-use crate::aot::utils::mangle_ident;
+use crate::aot::runner::mangle_ident;
 use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {

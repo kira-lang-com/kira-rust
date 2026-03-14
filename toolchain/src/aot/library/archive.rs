@@ -6,8 +6,8 @@ use inkwell::context::Context;
 
 use crate::compiler::CompiledModule;
 
-use super::native::NativeCodegen;
-use super::error::AotError;
+use crate::aot::native::NativeCodegen;
+use crate::aot::error::AotError;
 
 pub fn build_native_archive(
     project_name: &str,

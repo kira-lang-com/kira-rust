@@ -1,8 +1,8 @@
 use crate::compiler::{BackendKind, CompiledModule, FunctionSignature, Instruction};
 
-use super::error::AotError;
-use super::types::{rust_abi_type_name, unwrap_value_result, wrap_arg_as_value};
-use super::utils::mangle_ident;
+use crate::aot::error::AotError;
+use crate::aot::types::{rust_abi_type_name, unwrap_value_result, wrap_arg_as_value};
+use crate::aot::runner::mangle_ident;
 
 #[derive(Clone)]
 pub struct BridgeSpec {

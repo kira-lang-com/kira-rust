@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::error::AotError;
+use crate::aot::error::AotError;
 
 pub fn resolve_output_root(out_root: &Path) -> Result<PathBuf, AotError> {
     if out_root.is_absolute() {

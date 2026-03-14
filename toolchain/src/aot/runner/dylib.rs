@@ -3,7 +3,7 @@ use std::process::Command;
 
 use crate::compiler::FfiMetadata;
 
-use super::error::AotError;
+use crate::aot::error::AotError;
 
 pub fn shared_lib_extension() -> &'static str {
     if cfg!(target_os = "macos") {

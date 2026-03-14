@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use crate::compiler::CompiledModule;
 use crate::runtime::type_system::{KiraType, TypeId};
 
-use super::error::AotError;
+use crate::aot::error::AotError;
 
 pub struct ExportedApi {
     pub structs: Vec<String>,

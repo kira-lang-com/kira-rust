@@ -16,8 +16,8 @@ use crate::compiler::{Chunk, CompiledFunction, CompiledModule, FunctionSignature
 use crate::runtime::type_system::{KiraType, TypeId};
 use crate::runtime::Value;
 
-use super::error::AotError;
-use super::stack::{infer_stack_layout, StackState};
+use crate::aot::error::AotError;
+use crate::aot::stack::{infer_stack_layout, StackState};
 
 pub struct ExportSpec {
     pub exported_functions: HashSet<String>,

@@ -5,10 +5,10 @@ use std::env;
 
 use crate::compiler::{BackendKind, CompiledModule};
 
-use super::bridge::{collect_runtime_bridges, generate_bridge_function};
-use super::error::AotError;
+use crate::aot::bridge::{collect_runtime_bridges, generate_bridge_function};
+use crate::aot::bridge::{generate_extern_decl, generate_native_wrapper};
+use crate::aot::error::AotError;
 use super::utils::{indent, mangle_ident, write_if_changed};
-use super::wrappers::{generate_extern_decl, generate_native_wrapper};
 
 pub fn write_runner_project(
     runner_dir: &Path,

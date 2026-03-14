@@ -6,13 +6,9 @@ use crate::compiler::Instruction;
 use crate::compiler::compile_project;
 use crate::project::load_project;
 
-use super::archive::build_native_archive;
-use super::c_header::{generate_c_header, ExportedApi};
-use super::dylib::{link_shared_library, shared_lib_extension};
 use super::error::AotError;
-use super::lib_codegen::{CAbiCodegen, ExportSpec};
-use super::runner::{build_runner_project, write_runner_project, get_shared_target_dir};
-use super::utils::{remove_path_if_exists, resolve_output_root, write_if_changed};
+use super::library::{build_native_archive, generate_c_header, ExportedApi, CAbiCodegen, ExportSpec};
+use super::runner::{build_runner_project, get_shared_target_dir, link_shared_library, remove_path_if_exists, resolve_output_root, shared_lib_extension, write_if_changed, write_runner_project};
 
 pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<PathBuf, AotError> {
     use std::env;
