@@ -2,9 +2,8 @@ name: Build
 
 on:
   push:
-    branches: [ '**' ]  # Trigger on all branches (including main)
-  pull_request:
-    branches: [ '**' ]  # Trigger on PRs to all branches (including main)
+    tags:
+      - 'v*'  # Only trigger on version tags (e.g., v1.0.0, v0.1.0)
   release:
     types: [ created ]
 
