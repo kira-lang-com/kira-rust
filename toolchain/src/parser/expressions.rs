@@ -4,7 +4,7 @@ use crate::ast::{
     BinaryOperator, Expression, ExpressionKind, StructLiteralField, TypeSyntax, UnaryOperator,
 };
 
-use super::common::{keyword, span_to_range, symbol, token, RichError};
+use super::infrastructure::{keyword, span_to_range, symbol, token, RichError};
 use super::identifiers::{identifier_parser, member_identifier_parser};
 use super::literals::{
     bool_literal_parser, float_literal_parser, integer_literal_parser, string_literal_parser,

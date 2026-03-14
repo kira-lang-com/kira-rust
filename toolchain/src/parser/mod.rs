@@ -1,17 +1,15 @@
-mod attributes;
-mod common;
-mod error;
 mod expressions;
 mod identifiers;
+mod infrastructure;
 mod items;
 mod literals;
-mod platforms;
+mod metadata;
 mod statements;
 
 #[cfg(test)]
 mod tests;
 
-pub use error::ParseError;
+pub use infrastructure::ParseError;
 
 use chumsky::Parser;
 
@@ -21,5 +19,5 @@ pub fn parse(source: &str) -> Result<SourceFile, Vec<ParseError>> {
     items::program_parser()
         .parse(source)
         .into_result()
-        .map_err(error::convert_errors)
+        .map_err(infrastructure::convert_errors)
 }
