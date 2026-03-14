@@ -1,3 +1,6 @@
+mod blocks;
+mod callees;
+mod expressions;
 mod functions;
 mod graph;
 mod imports;
