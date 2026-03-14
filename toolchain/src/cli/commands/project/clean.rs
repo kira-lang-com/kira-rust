@@ -11,9 +11,9 @@ pub fn cmd_clean() {
     }
 
     match fs::remove_dir_all(&out_dir) {
-        Ok(_) => println!("  Removed out/"),
+        Ok(_) => println!("  Removed target/"),
         Err(e) => {
-            eprintln!("error: failed to remove out/: {}", e);
+            eprintln!("error: failed to remove target/: {}", e);
             process::exit(1);
         }
     }

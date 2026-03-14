@@ -1,4 +1,4 @@
-out/
+target/
 .kira-build/
 
 # Native libs produced by examples

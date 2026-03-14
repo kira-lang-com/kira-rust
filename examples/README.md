@@ -6,7 +6,7 @@ Build an example (from the example directory):
 
 ```sh
 cargo run --manifest-path ../../toolchain/Cargo.toml -- build --bin
-./out/<project_name>/<project_name>
+./target/<project_name>/<project_name>
 ```
 
 Build a dynamic library example:

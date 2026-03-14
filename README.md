@@ -120,10 +120,10 @@ cd kira
 
 ```bash
 kira new my_app              # scaffold a new Kira project
-kira build                   # compile to native binary in out/
+kira build                   # compile to native binary in target/
 kira run                     # build and run immediately
 kira check                   # type-check without compiling
-kira clean                   # remove out/ and build artifacts
+kira clean                   # remove target/ and build artifacts
 kira package                 # package a library for distribution
 kira fetch                   # fetch and cache project dependencies
 kira add <name>              # add a dependency to the project
@@ -229,7 +229,7 @@ Package your library:
 kira package
 ```
 
-This creates a `.kpkg` file in the `out/` directory.
+This creates a `.kpkg` file in the `target/` directory.
 
 ### Using Libraries
 

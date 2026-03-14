@@ -8,7 +8,7 @@ use crate::cli::utils::find_project_root;
 
 pub fn cmd_run() {
     let project_root = find_project_root();
-    let out_root = PathBuf::from("out");
+    let out_root = PathBuf::from("target");
 
     let project = match load_project(&project_root) {
         Ok(p) => p,
