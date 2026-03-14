@@ -6,6 +6,12 @@
 
 # Kira
 
+[![CI](https://github.com/kira-lang-com/kira/workflows/CI/badge.svg)](https://github.com/kira-lang-com/kira/actions/workflows/ci.yml)
+[![Build](https://github.com/kira-lang-com/kira/workflows/Build/badge.svg)](https://github.com/kira-lang-com/kira/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
+> **Note:** CI/CD runs on every commit to any branch. See [build status](.github/STATUS.md) for details.
+
 A dual-mode compiled programming language — written in Rust.
 
 Kira functions can run as **native machine code** (via LLVM) or as **interpreted 
@@ -78,37 +84,74 @@ For local Zed dev-extension installs, Tree-sitter grammar compilation also requi
 
 ## Getting Started
 
-### Prerequisites
+### Download Pre-built Binaries
+
+Download the latest release for your platform from the [Releases page](https://github.com/kira-lang-com/kira/releases):
+
+- **Linux**: `kira-Linux-x86_64.tar.gz`
+- **macOS (Intel)**: `kira-Darwin-x86_64.tar.gz`
+- **macOS (Apple Silicon)**: `kira-Darwin-aarch64.tar.gz`
+- **Windows**: `kira-Windows-x86_64.zip`
+
+Extract and add to your PATH, or use the toolchain installer (see below).
+
+### Build from Source
+
+#### Prerequisites
 
 - Rust (latest stable)
 - LLVM 17
 - `clang` and `libtool` (macOS: included with Xcode Command Line Tools)
 
-### Build
+#### Build
 ```bash
 git clone https://github.com/kira-lang-com/kira
-cd kira
+cd kira/toolchain
 cargo build --release
+cp target/release/toolchain ../kira
 ```
 
-### Run a project
+Or use the built-in toolchain installer:
 ```bash
-kira run    # compile and run via VM
-kira build  # compile to a native binary in out/
+cd kira
+./kira toolchain install --dev
+./kira toolchain path  # shows how to add to PATH
 ```
 
-### Project structure
+### CLI Commands
+
+```bash
+kira new my_app              # scaffold a new Kira project
+kira build                   # compile to native binary in out/
+kira run                     # build and run immediately
+kira check                   # type-check without compiling
+kira clean                   # remove out/ and build artifacts
+kira version                 # print Kira version
+kira toolchain install --dev # build and install development toolchain
+kira toolchain list          # list installed toolchains
+kira toolchain path          # show PATH configuration
+```
+
+### Create a new project
+```bash
+kira new my_app
+cd my_app
+kira run
+```
+
+This scaffolds:
 ```
 my_app/
 ├── kira.project     # project manifest
-└── main.kira        # entry point
+└── src/
+    └── main.kira    # entry point with Hello, Kira!
 ```
 
 `kira.project`:
 ```
 name = "my_app"
 version = "0.1.0"
-entry = "main.kira"
+entry = "src/main.kira"
 ```
 
 ## Execution Modes

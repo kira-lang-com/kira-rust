@@ -43,10 +43,17 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
     remove_path_if_exists(&out_root.join("compiled_module.bin"), "legacy compiled module")?;
 
     let staging_root = out_root.join(".kira-build").join(&project.manifest.name);
-    recreate_dir(&staging_root, "staging build")?;
+    // Create staging directory if it doesn't exist, but don't recreate it
+    // This preserves the cargo build cache in the runner's target directory
+    fs::create_dir_all(&staging_root).map_err(|error| {
+        AotError(format!(
+            "failed to create staging directory `{}`: {}",
+            staging_root.display(),
+            error
+        ))
+    })?;
 
     let final_bundle_dir = out_root.join(&project.manifest.name);
-    remove_path_if_exists(&final_bundle_dir, "old app bundle")?;
     fs::create_dir_all(&final_bundle_dir).map_err(|error| {
         AotError(format!(
             "failed to create final app bundle `{}`: {}",
@@ -124,25 +131,6 @@ fn resolve_output_root(out_root: &Path) -> Result<PathBuf, AotError> {
     })?;
     std::fs::canonicalize(candidate)
         .map_err(|error| AotError(format!("failed to resolve out directory: {error}")))
-}
-
-fn recreate_dir(path: &Path, label: &str) -> Result<(), AotError> {
-    if path.exists() {
-        fs::remove_dir_all(path).map_err(|error| {
-            AotError(format!(
-                "failed to clean {label} directory `{}`: {}",
-                path.display(),
-                error
-            ))
-        })?;
-    }
-    fs::create_dir_all(path).map_err(|error| {
-        AotError(format!(
-            "failed to create {label} directory `{}`: {}",
-            path.display(),
-            error
-        ))
-    })
 }
 
 fn remove_path_if_exists(path: &Path, label: &str) -> Result<(), AotError> {
@@ -273,20 +261,33 @@ fn write_runner_project(
         name = project_name,
         toolchain = crate_root.display()
     );
-    fs::write(runner_dir.join("Cargo.toml"), cargo_toml)
-        .map_err(|error| AotError(format!("failed to write runner Cargo.toml: {error}")))?;
+    write_if_changed(&runner_dir.join("Cargo.toml"), &cargo_toml)?;
 
     let build_rs = format!(
         "fn main() {{\n    println!(\"cargo:rustc-link-search=native={}\");\n    println!(\"cargo:rustc-link-lib=static=kira_native\");\n}}\n",
         native_archive.parent().unwrap().display()
     );
-    fs::write(runner_dir.join("build.rs"), build_rs)
-        .map_err(|error| AotError(format!("failed to write runner build.rs: {error}")))?;
+    write_if_changed(&runner_dir.join("build.rs"), &build_rs)?;
 
     let runner_source = generate_runner_source(module, module_bin, entry_symbol)?;
-    fs::write(runner_dir.join("src/main.rs"), runner_source)
-        .map_err(|error| AotError(format!("failed to write runner main.rs: {error}")))?;
+    write_if_changed(&runner_dir.join("src/main.rs"), &runner_source)?;
 
+    Ok(())
+}
+
+fn write_if_changed(path: &Path, content: &str) -> Result<(), AotError> {
+    // Only write if the file doesn't exist or content has changed
+    let should_write = match fs::read_to_string(path) {
+        Ok(existing) => existing != content,
+        Err(_) => true,
+    };
+    
+    if should_write {
+        fs::write(path, content).map_err(|error| {
+            AotError(format!("failed to write `{}`: {}", path.display(), error))
+        })?;
+    }
+    
     Ok(())
 }
 
