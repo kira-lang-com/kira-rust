@@ -314,12 +314,119 @@ When writing or reviewing code:
 7. **Are there tests for this functionality?**
 8. **Is this the right place for this code?**
 
+## Version Control Guidelines
+
+### Commit Frequently
+
+**Commit early and often** to maintain a clear development history:
+
+- Commit after completing each logical unit of work
+- Commit when a file is refactored or split
+- Commit after fixing a bug or adding a feature
+- Commit when tests pass for new functionality
+
+**Good commit frequency:**
+- After extracting a function into a new file
+- After implementing a single function
+- After fixing a compilation error
+- After adding tests for a feature
+
+**Benefits:**
+- Easy to revert specific changes
+- Clear history of development progress
+- Easier code review
+- Better collaboration with others
+
+### Push Only When Requested
+
+**Do not push automatically** - only push when the user explicitly asks:
+
+- User says "push" or "push changes"
+- User asks to "sync" or "upload"
+- User requests to "share changes"
+
+**Never push automatically after:**
+- Completing a task
+- Fixing bugs
+- Refactoring code
+- Running tests
+
+**Why:** Users may want to review, test, or make additional changes before sharing with others.
+
+### Folder Organization Best Practices
+
+**Use folders liberally** to organize code:
+
+```
+Good structure:
+compiler/
+├── lowering/
+│   ├── assignments.rs
+│   ├── calls.rs
+│   └── expressions.rs
+├── eligibility/
+│   ├── analyzer.rs
+│   └── types.rs
+└── native_build.rs
+```
+
+**When to create a folder:**
+- 3+ related files exist
+- Clear conceptual grouping emerges
+- Functionality has multiple sub-components
+- Module grows beyond a single file
+
+**Folder naming:**
+- Use descriptive, plural nouns when appropriate (`statements/`, `operators/`)
+- Use singular for single-concept modules (`lowering/`, `runtime/`)
+- Keep names short but clear
+
+### Avoid Excessive Folder Nesting
+
+**Maximum recommended depth: 3-4 levels**
+
+```
+Good (3 levels):
+src/compiler/lowering/statements.rs
+
+Acceptable (4 levels):
+src/compiler/eligibility/statements/control_flow.rs
+
+Bad (5+ levels):
+src/compiler/lowering/statements/control_flow/loops/while_loop.rs
+```
+
+**Problems with deep nesting:**
+- Hard to navigate and find files
+- Long import paths
+- Cognitive overhead
+- Suggests over-engineering
+
+**Solutions when nesting gets deep:**
+- Flatten the structure by combining related folders
+- Move files up a level if they're general enough
+- Reconsider if the abstraction is necessary
+- Use more descriptive file names instead of folders
+
+**Example refactoring:**
+```
+Before (too nested):
+compiler/lowering/statements/control_flow/loops/while.rs
+compiler/lowering/statements/control_flow/loops/for.rs
+
+After (flattened):
+compiler/lowering/loops.rs  (contains both while and for)
+```
+
 ## Summary
 
 - **200 lines max per file** - Hard limit, split before reaching it
 - **One purpose per file** - Clear, focused responsibility
-- **Use folders** - Organize related functionality
-- **Avoid nesting** - Use early returns and flat control flow
+- **Use folders liberally** - Organize related functionality (3+ files)
+- **Avoid deep nesting** - Keep folder depth to 3-4 levels max
+- **Avoid code nesting** - Use early returns and flat control flow
+- **Commit frequently** - After each logical unit of work
+- **Push only when asked** - Never push automatically
 - **Quality matters** - Readable, maintainable, well-tested code
 
 Following these guidelines ensures the Kira codebase remains clean, maintainable, and easy to work with as it grows.
