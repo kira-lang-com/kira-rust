@@ -7,8 +7,8 @@ use crate::runtime::type_system::{TypeId, TypeSystem};
 use super::assignments::lower_assignment;
 use super::expressions::lower_expression;
 use super::loops::lower_for_loop;
-use super::types::{LocalBinding, LoopContext};
-use super::chunk_helpers::{allocate_local, ensure_local_type, patch_jump, patch_jumps};
+use super::infrastructure::{allocate_local, ensure_local_type, patch_jump, patch_jumps};
+use super::infrastructure::{LocalBinding, LoopContext};
 
 pub fn lower_block(
     statements: &[Statement],

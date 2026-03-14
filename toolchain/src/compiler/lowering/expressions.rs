@@ -9,7 +9,7 @@ use super::assignments::lower_assignment;
 use super::calls::lower_call_expression;
 use super::literals::{lower_array_literal, lower_struct_literal};
 use super::operators::{lower_binary_operator, lower_cast_expression, lower_unary_expression};
-use super::types::LocalBinding;
+use super::infrastructure::LocalBinding;
 
 pub use super::assignments::lower_assignment as pub_lower_assignment;
 

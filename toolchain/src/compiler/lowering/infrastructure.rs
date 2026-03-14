@@ -1,5 +1,31 @@
+// Lowering infrastructure: types, chunk helpers, and utilities
+
 use crate::compiler::{Chunk, CompileError, Instruction};
-use crate::runtime::type_system::TypeId;
+use crate::runtime::type_system::{TypeId, TypeSystem};
+
+// Type utilities
+
+#[derive(Clone, Copy)]
+pub struct LocalBinding {
+    pub slot: usize,
+    pub type_id: TypeId,
+}
+
+#[derive(Default)]
+pub struct LoopContext {
+    pub break_jumps: Vec<usize>,
+    pub continue_jumps: Vec<usize>,
+}
+
+pub fn is_numeric_type(types: &TypeSystem, type_id: TypeId) -> bool {
+    type_id == types.int() || type_id == types.float()
+}
+
+pub fn is_equatable_type(types: &TypeSystem, type_id: TypeId) -> bool {
+    is_numeric_type(types, type_id) || type_id == types.bool()
+}
+
+// Chunk manipulation helpers
 
 pub fn allocate_local(chunk: &mut Chunk) -> usize {
     let slot = chunk.local_count;
@@ -33,9 +59,9 @@ pub fn patch_jumps(instructions: &mut [Instruction], indexes: &[usize], target: 
 pub fn require_same_numeric_types(
     left: TypeId,
     right: TypeId,
-    types: &crate::runtime::type_system::TypeSystem,
+    types: &TypeSystem,
 ) -> Result<TypeId, CompileError> {
-    if left == right && super::types::is_numeric_type(types, left) {
+    if left == right && is_numeric_type(types, left) {
         Ok(left)
     } else {
         Err(CompileError(format!(
@@ -49,9 +75,9 @@ pub fn require_same_numeric_types(
 pub fn require_same_equatable_types(
     left: TypeId,
     right: TypeId,
-    types: &crate::runtime::type_system::TypeSystem,
+    types: &TypeSystem,
 ) -> Result<(), CompileError> {
-    if left == right && super::types::is_equatable_type(types, left) {
+    if left == right && is_equatable_type(types, left) {
         Ok(())
     } else {
         Err(CompileError(format!(

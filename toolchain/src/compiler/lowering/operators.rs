@@ -5,8 +5,8 @@ use crate::compiler::{Chunk, CompileError, FunctionSignature, Instruction};
 use crate::runtime::type_system::{TypeId, TypeSystem};
 
 use super::expressions::lower_expression;
-use super::types::{is_numeric_type, LocalBinding};
-use super::chunk_helpers::{require_same_equatable_types, require_same_numeric_types};
+use super::infrastructure::{is_numeric_type, LocalBinding};
+use super::infrastructure::{require_same_equatable_types, require_same_numeric_types};
 
 pub fn lower_cast_expression(
     target: &TypeSyntax,

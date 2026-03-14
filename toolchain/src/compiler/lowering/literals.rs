@@ -6,7 +6,7 @@ use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
 use crate::runtime::Value;
 
 use super::expressions::lower_expression;
-use super::types::LocalBinding;
+use super::infrastructure::LocalBinding;
 
 pub fn lower_array_literal(
     elements: &[Expression],

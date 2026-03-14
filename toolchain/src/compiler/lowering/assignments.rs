@@ -5,7 +5,7 @@ use crate::compiler::{Chunk, CompileError, FunctionSignature, Instruction};
 use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
 
 use super::expressions::lower_expression;
-use super::types::LocalBinding;
+use super::infrastructure::LocalBinding;
 
 pub fn lower_assignment(
     statement: &AssignStatement,
