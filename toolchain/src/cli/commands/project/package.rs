@@ -3,7 +3,7 @@ use std::process;
 
 use crate::project::{load_project, package_library, ProjectKind};
 
-use super::super::utils::find_project_root;
+use crate::cli::utils::find_project_root;
 
 pub fn cmd_package(output_dir: &Path) {
     let project_root = find_project_root();

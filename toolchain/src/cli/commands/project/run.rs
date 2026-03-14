@@ -4,7 +4,7 @@ use std::process;
 use crate::aot::{build_default_project, run_default_project};
 use crate::project::load_project;
 
-use super::super::utils::find_project_root;
+use crate::cli::utils::find_project_root;
 
 pub fn cmd_run() {
     let project_root = find_project_root();

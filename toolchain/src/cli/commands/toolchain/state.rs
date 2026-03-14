@@ -3,7 +3,7 @@ use std::fs;
 use std::io::{self, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 
-use super::super::utils::get_toolchain_dir;
+use crate::cli::utils::get_toolchain_dir;
 
 pub fn toolchains_root() -> PathBuf {
     get_toolchain_dir()

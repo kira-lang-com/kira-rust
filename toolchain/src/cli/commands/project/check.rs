@@ -3,7 +3,7 @@ use std::process;
 use crate::compiler::compile_project;
 use crate::project::load_project;
 
-use super::super::utils::find_project_root;
+use crate::cli::utils::find_project_root;
 
 pub fn cmd_check() {
     let project_root = find_project_root();

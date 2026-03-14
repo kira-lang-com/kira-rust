@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 
-use super::toolchain_state::{
+use super::state::{
     current_kira_path, exe_name, print_path_instructions, prompt_yes_no, set_current_kira_binary,
     toolchains_root,
 };

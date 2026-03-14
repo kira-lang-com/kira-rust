@@ -1,22 +1,11 @@
-mod build;
-mod check;
-mod clean;
+// CLI command implementations
+
 mod deps;
-mod install;
-mod new;
-mod package;
-mod run;
+mod project;
 mod run_module;
 mod toolchain;
-mod toolchain_state;
 
-pub use build::cmd_build;
-pub use check::cmd_check;
-pub use clean::cmd_clean;
 pub use deps::{cmd_add, cmd_fetch};
-pub use install::cmd_install;
-pub use new::cmd_new;
-pub use package::cmd_package;
-pub use run::cmd_run;
+pub use project::{cmd_build, cmd_check, cmd_clean, cmd_new, cmd_package, cmd_run};
 pub use run_module::cmd_run_module;
-pub use toolchain::{cmd_toolchain_install, cmd_toolchain_list, cmd_toolchain_path, cmd_toolchain_use};
+pub use toolchain::{cmd_install, cmd_toolchain_install, cmd_toolchain_list, cmd_toolchain_path, cmd_toolchain_use};

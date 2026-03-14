@@ -1,7 +1,7 @@
 use std::{fs, process};
 
 use super::install::cmd_install;
-use super::toolchain_state::{
+use super::state::{
     print_path_instructions, read_current_kira_target, set_current_kira_binary, toolchains_root,
 };
 

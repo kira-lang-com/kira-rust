@@ -4,7 +4,7 @@ use std::process;
 use crate::aot::{build_default_project, build_library_project};
 use crate::project::load_project;
 
-use super::super::utils::find_project_root;
+use crate::cli::utils::find_project_root;
 
 pub fn cmd_build(lib: bool, _bin: bool) {
     let project_root = find_project_root();
