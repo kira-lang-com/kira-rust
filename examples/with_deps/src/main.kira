@@ -1,0 +1,9 @@
+import math_utils;
+
+func main() {
+    let n: int = 5;
+    printIn(math_utils.square(n));
+    printIn(math_utils.cube(n));
+    printIn(math_utils.factorial(n));
+}
+

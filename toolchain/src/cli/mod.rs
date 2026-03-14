@@ -1,7 +1,7 @@
 mod commands;
 mod utils;
 
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use std::path::PathBuf;
 
 use commands::*;
@@ -14,15 +14,31 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[command(version = VERSION)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
 enum Commands {
     /// Create a new Kira project
     New { name: String },
+    /// Install the Kira toolchain into `~/kira/toolchains/<mode>/<version>/`
+    Install {
+        /// Install a release toolchain
+        #[arg(long, conflicts_with = "dev")]
+        release: bool,
+        /// Install a development toolchain
+        #[arg(long, conflicts_with = "release")]
+        dev: bool,
+    },
     /// Compile the project to a native binary
-    Build,
+    Build {
+        /// Build a native dynamic library (`.dylib`/`.so`/`.dll`) instead of an executable
+        #[arg(long, conflicts_with = "bin")]
+        lib: bool,
+        /// Build a native executable (default)
+        #[arg(long, conflicts_with = "lib")]
+        bin: bool,
+    },
     /// Build and run the project immediately
     Run,
     /// Type-check the project without compiling
@@ -70,6 +86,11 @@ enum ToolchainCommands {
     },
     /// List installed toolchain versions
     List,
+    /// Set the current/default toolchain (updates `~/kira/toolchains/current/kira`)
+    Use {
+        /// Toolchain identifier in the form `dev/<version>` or `release/<version>`
+        toolchain: String,
+    },
     /// Add Kira toolchain to PATH
     Path,
 }
@@ -78,18 +99,26 @@ pub fn run() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::New { name } => cmd_new(&name),
-        Commands::Build => cmd_build(),
-        Commands::Run => cmd_run(),
-        Commands::Check => cmd_check(),
-        Commands::Clean => cmd_clean(),
-        Commands::Version => cmd_version(),
-        Commands::Package { output } => cmd_package(&output),
-        Commands::Fetch => cmd_fetch(),
-        Commands::Add { name, version, path, git } => cmd_add(&name, version, path, git),
-        Commands::Toolchain { command } => match command {
+        None => {
+            // Treat `kira` with no args as a successful "show help" invocation.
+            let mut cmd = Cli::command();
+            let _ = cmd.print_help();
+            println!();
+        }
+        Some(Commands::New { name }) => cmd_new(&name),
+        Some(Commands::Install { release, dev }) => cmd_install(release, dev),
+        Some(Commands::Build { lib, bin }) => cmd_build(lib, bin),
+        Some(Commands::Run) => cmd_run(),
+        Some(Commands::Check) => cmd_check(),
+        Some(Commands::Clean) => cmd_clean(),
+        Some(Commands::Version) => cmd_version(),
+        Some(Commands::Package { output }) => cmd_package(&output),
+        Some(Commands::Fetch) => cmd_fetch(),
+        Some(Commands::Add { name, version, path, git }) => cmd_add(&name, version, path, git),
+        Some(Commands::Toolchain { command }) => match command {
             ToolchainCommands::Install { dev } => cmd_toolchain_install(dev),
             ToolchainCommands::List => cmd_toolchain_list(),
+            ToolchainCommands::Use { toolchain } => cmd_toolchain_use(&toolchain),
             ToolchainCommands::Path => cmd_toolchain_path(),
         },
     }

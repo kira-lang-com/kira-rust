@@ -1,0 +1,4 @@
+name = "control_flow"
+version = "0.1.0"
+entry = "src/main.kira"
+

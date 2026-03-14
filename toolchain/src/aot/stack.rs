@@ -245,6 +245,13 @@ fn transfer_state(
                 .map(|function| function.signature.clone())
                 .or_else(|| {
                     module
+                        .ffi
+                        .functions
+                        .get(function)
+                        .map(|function| function.signature.clone())
+                })
+                .or_else(|| {
+                    module
                         .builtins
                         .get(function)
                         .map(|builtin| builtin.signature.clone())

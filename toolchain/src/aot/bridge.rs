@@ -28,6 +28,9 @@ pub fn collect_runtime_bridges(module: &CompiledModule) -> Result<Vec<BridgeSpec
             else {
                 continue;
             };
+            if module.ffi.functions.contains_key(callee) {
+                continue;
+            }
             if matches!(
                 module.functions.get(callee),
                 Some(target) if target.selected_backend == BackendKind::Native

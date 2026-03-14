@@ -1,0 +1,7 @@
+name = "link_ffi"
+version = "0.1.0"
+entry = "src/main.kira"
+
+[dependencies]
+mylib = { path = "native/mylib.h" }
+

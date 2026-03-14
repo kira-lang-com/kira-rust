@@ -9,6 +9,13 @@ pub enum ExecutionMode {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LinkDirective {
+    pub library: String,
+    pub header: String,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StructField {
     pub name: Identifier,
     pub type_name: TypeSyntax,
@@ -17,6 +24,7 @@ pub struct StructField {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StructDefinition {
+    pub attributes: Vec<Attribute>,
     pub name: Identifier,
     pub fields: Vec<StructField>,
     pub span: Span,
@@ -54,6 +62,7 @@ pub enum TopLevelItem {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SourceFile {
+    pub links: Vec<LinkDirective>,
     pub imports: Vec<Import>,
     pub platforms: Option<PlatformsMetadata>,
     pub items: Vec<TopLevelItem>,
@@ -62,5 +71,6 @@ pub struct SourceFile {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Program {
     pub platforms: Option<PlatformsMetadata>,
+    pub links: Vec<LinkDirective>,
     pub items: Vec<TopLevelItem>,
 }

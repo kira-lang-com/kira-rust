@@ -1,0 +1,7 @@
+name = "with_deps"
+version = "0.1.0"
+entry = "src/main.kira"
+
+[dependencies]
+math_utils = { version = "1.0.0", path = "../math_utils_lib" }
+

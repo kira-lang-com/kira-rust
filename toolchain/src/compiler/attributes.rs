@@ -8,6 +8,17 @@ pub(super) struct ResolvedFunctionAttributes {
     pub target_platforms: Vec<String>,
 }
 
+fn host_platform_name() -> &'static str {
+    if cfg!(target_os = "macos") {
+        "macos"
+    } else if cfg!(target_os = "windows") {
+        "windows"
+    } else {
+        // Treat all other supported hosts as Linux-like for now.
+        "linux"
+    }
+}
+
 pub(super) fn resolve_function_attributes(
     function: &FunctionDefinition,
     platforms: Option<&PlatformModel>,
@@ -47,6 +58,11 @@ pub(super) fn resolve_function_attributes(
                     .map(|argument| argument.name.clone())
                     .collect();
             }
+            "Export" => {
+                if !attribute.arguments.is_empty() {
+                    return Err(CompileError("`@Export` does not take arguments".to_string()));
+                }
+            }
             unknown => {
                 return Err(CompileError(format!(
                     "unknown function attribute `@{unknown}`"
@@ -56,9 +72,20 @@ pub(super) fn resolve_function_attributes(
     }
 
     let target_platforms = if platform_selectors.is_empty() {
-        platforms
-            .map(PlatformModel::all_targets)
-            .unwrap_or_default()
+        // Default platform selection is host-based when a `#platforms` block exists:
+        // If the host is part of the declared platform universe, treat the function as host-only
+        // unless explicitly annotated with `@Platforms(...)`.
+        if let Some(platforms) = platforms {
+            let host = host_platform_name();
+            let all = platforms.all_targets();
+            if all.iter().any(|target| target == host) {
+                vec![host.to_string()]
+            } else {
+                all
+            }
+        } else {
+            Vec::new()
+        }
     } else {
         let Some(platforms) = platforms else {
             return Err(CompileError(

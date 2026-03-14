@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::env;
 
 use crate::compiler::{BackendKind, CompiledModule};
 
@@ -25,7 +26,7 @@ pub fn write_runner_project(
         ))
     })?;
 
-    let crate_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let crate_root = resolve_toolchain_crate_root()?;
     let cargo_toml = format!(
         "[package]\nname = \"{name}_runner\"\nversion = \"0.1.0\"\nedition = \"2021\"\n[[bin]]\nname = \"{name}\"\npath = \"src/main.rs\"\n\n[dependencies]\nbincode = \"1.3.3\"\nordered-float = \"5.1.0\"\ntoolchain = {{ path = \"{toolchain}\" }}\n",
         name = project_name,
@@ -33,10 +34,40 @@ pub fn write_runner_project(
     );
     write_if_changed(&runner_dir.join("Cargo.toml"), &cargo_toml)?;
 
-    let build_rs = format!(
-        "fn main() {{\n    println!(\"cargo:rustc-link-search=native={}\");\n    println!(\"cargo:rustc-link-lib=static=kira_native\");\n}}\n",
+    let mut build_rs = String::new();
+    build_rs.push_str("fn main() {\n");
+    build_rs.push_str(&format!(
+        "    println!(\"cargo:rustc-link-search=native={}\");\n",
         native_archive.parent().unwrap().display()
-    );
+    ));
+    build_rs.push_str("    println!(\"cargo:rustc-link-lib=static=kira_native\");\n");
+
+    let mut seen_paths = std::collections::HashSet::new();
+    let mut seen_libs = std::collections::HashSet::new();
+    let emit_rpath = !cfg!(target_os = "windows");
+    for link in &module.ffi.links {
+        if seen_libs.insert(link.library.clone()) {
+            build_rs.push_str(&format!(
+                "    println!(\"cargo:rustc-link-lib=dylib={}\");\n",
+                link.library
+            ));
+        }
+        for path in &link.search_paths {
+            if seen_paths.insert(path.clone()) {
+                build_rs.push_str(&format!(
+                    "    println!(\"cargo:rustc-link-search=native={}\");\n",
+                    path
+                ));
+                if emit_rpath {
+                    build_rs.push_str(&format!(
+                        "    println!(\"cargo:rustc-link-arg=-Wl,-rpath,{}\");\n",
+                        path
+                    ));
+                }
+            }
+        }
+    }
+    build_rs.push_str("}\n");
     write_if_changed(&runner_dir.join("build.rs"), &build_rs)?;
 
     let runner_source = generate_runner_source(module, module_bin, entry_symbol)?;
@@ -45,7 +76,55 @@ pub fn write_runner_project(
     Ok(())
 }
 
+fn resolve_toolchain_crate_root() -> Result<PathBuf, AotError> {
+    if let Ok(value) = env::var("KIRA_TOOLCHAIN_SRC") {
+        let path = PathBuf::from(value);
+        if path.join("Cargo.toml").is_file() {
+            return Ok(path);
+        }
+    }
+
+    // Installed layout: `<install_root>/kira` and `<install_root>/toolchain/Cargo.toml`.
+    if let Ok(exe) = env::current_exe() {
+        let exe = fs::canonicalize(&exe).unwrap_or(exe);
+        if let Some(exe_dir) = exe.parent() {
+            let candidate = exe_dir.join("toolchain");
+            if candidate.join("Cargo.toml").is_file() {
+                return Ok(candidate);
+            }
+            // Repo layout: `toolchain/target/<profile>/kira`.
+            if let Some(toolchain_dir) = exe_dir.parent().and_then(|p| p.parent()) {
+                if toolchain_dir.file_name().and_then(|n| n.to_str()) == Some("toolchain")
+                    && toolchain_dir.join("Cargo.toml").is_file()
+                {
+                    return Ok(toolchain_dir.to_path_buf());
+                }
+            }
+        }
+    }
+
+    // Dev fallback: compile-time crate root.
+    let compile_time = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    if compile_time.join("Cargo.toml").is_file() {
+        return Ok(compile_time);
+    }
+
+    Err(AotError(
+        "could not resolve toolchain crate root for runner generation".to_string(),
+    ))
+}
+
 pub fn build_runner_project(runner_dir: &Path) -> Result<(), AotError> {
+    let mut cmd = Command::new("cargo");
+    cmd.arg("build").arg("--release").arg("--offline").current_dir(runner_dir);
+    let status = cmd
+        .status()
+        .map_err(|error| AotError(format!("failed to execute runner cargo build: {error}")))?;
+    if status.success() {
+        return Ok(());
+    }
+
+    // Fallback: allow Cargo to fetch missing deps when offline mode can't resolve them.
     let status = Command::new("cargo")
         .arg("build")
         .arg("--release")

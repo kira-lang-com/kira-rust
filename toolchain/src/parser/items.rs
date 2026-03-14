@@ -1,25 +1,34 @@
 use chumsky::prelude::*;
 
 use crate::ast::syntax::{
-    ExecutionMode, FunctionDefinition, Import, Parameter, SourceFile, StructDefinition,
-    StructField, TopLevelItem,
+    ExecutionMode, FunctionDefinition, Import, LinkDirective, Parameter, SourceFile,
+    StructDefinition, StructField, TopLevelItem,
 };
 
 use super::attributes::attributes_parser;
 use super::common::{keyword, span_to_range, symbol, token, RichError};
 use super::expressions::expression_parser;
 use super::identifiers::{identifier_parser, member_identifier_parser, type_name_parser};
+use super::literals;
 use super::platforms::platforms_parser;
 use super::statements::block_parser;
+
+enum PreItem {
+    Link(LinkDirective),
+    Import(Import),
+}
 
 pub fn program_parser<'src>(
 ) -> impl Parser<'src, &'src str, SourceFile, RichError<'src>> + Clone {
     platforms_parser()
         .or_not()
         .then(
-            import_parser()
-        .repeated()
-        .collect::<Vec<_>>()
+            choice((
+                link_directive_parser().map(PreItem::Link),
+                import_parser().map(PreItem::Import),
+            ))
+            .repeated()
+            .collect::<Vec<_>>(),
         )
         .then(
             item_parser()
@@ -27,10 +36,21 @@ pub fn program_parser<'src>(
         .collect::<Vec<_>>()
         )
         .then_ignore(end())
-        .map(|((platforms, imports), items)| SourceFile {
-            imports,
-            platforms,
-            items,
+        .map(|((platforms, pre_items), items)| {
+            let mut links = Vec::new();
+            let mut imports = Vec::new();
+            for item in pre_items {
+                match item {
+                    PreItem::Link(link) => links.push(link),
+                    PreItem::Import(import) => imports.push(import),
+                }
+            }
+            SourceFile {
+                links,
+                imports,
+                platforms,
+                items,
+            }
         })
 }
 
@@ -41,11 +61,13 @@ fn item_parser<'src>(
 
 fn struct_parser<'src>(
 ) -> impl Parser<'src, &'src str, TopLevelItem, RichError<'src>> + Clone {
-    keyword("struct")
-        .ignore_then(identifier_parser())
+    attributes_parser()
+        .then_ignore(keyword("struct"))
+        .then(identifier_parser())
         .then(struct_fields_parser())
-        .map_with(|(name, fields), extra| {
+        .map_with(|((attributes, name), fields), extra| {
             TopLevelItem::Struct(StructDefinition {
+                attributes,
                 name,
                 fields,
                 span: span_to_range(extra.span()),
@@ -120,6 +142,48 @@ fn import_parser<'src>(
         .then_ignore(symbol(';'))
         .map_with(|path, extra| Import {
             path,
+            span: span_to_range(extra.span()),
+        })
+}
+
+fn link_directive_parser<'src>(
+) -> impl Parser<'src, &'src str, LinkDirective, RichError<'src>> + Clone {
+    // `@Link("yoga", header: "yoga/Yoga.h")` (optional trailing `;`)
+    let string = literals::string_literal_parser().map(|expr| {
+        let crate::ast::syntax::ExpressionKind::Literal(crate::ast::syntax::Literal::String(value)) =
+            expr.kind
+        else {
+            unreachable!("string literal parser must produce a string literal");
+        };
+        value
+    });
+
+    let header = identifier_parser()
+        .try_map(|ident, span| {
+            if ident.name == "header" {
+                Ok(())
+            } else {
+                Err(Rich::custom(
+                    span,
+                    "expected named argument `header:`".to_string(),
+                ))
+            }
+        })
+        .then_ignore(symbol(':'))
+        .ignore_then(string.clone());
+
+    symbol('@')
+        .ignore_then(text::keyword::<_, _, RichError<'src>>("Link"))
+        .ignore_then(
+            string
+                .then_ignore(symbol(','))
+                .then(header)
+                .delimited_by(symbol('('), symbol(')')),
+        )
+        .then_ignore(symbol(';').or_not())
+        .map_with(|(library, header), extra| LinkDirective {
+            library,
+            header,
             span: span_to_range(extra.span()),
         })
 }

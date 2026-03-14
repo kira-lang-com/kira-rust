@@ -1,0 +1,16 @@
+import Foundation.Math;
+import Foundation.String;
+import Foundation.Random;
+
+func main() {
+    printIn(Math.sqrt(81.0));
+    printIn(Math.clamp(150, 0, 100));
+
+    printIn(String.uppercase("kira"));
+    printIn(String.contains("toolchain", "chain"));
+
+    // Random values vary per run.
+    printIn(Random.int(1, 10));
+    printIn(Random.bool());
+}
+

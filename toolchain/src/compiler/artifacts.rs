@@ -74,6 +74,25 @@ pub struct BuiltinFunction {
     pub backend: BackendKind,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FfiLink {
+    pub library: String,
+    pub header: String,
+    pub search_paths: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FfiFunction {
+    pub symbol: String,
+    pub signature: FunctionSignature,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct FfiMetadata {
+    pub links: Vec<FfiLink>,
+    pub functions: HashMap<String, FfiFunction>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BuildStage {
     BuildTimeOnly,
@@ -120,6 +139,7 @@ pub struct CompiledModule {
     pub aot_plan: AotBuildPlan,
     pub types: TypeSystem,
     pub builtins: HashMap<String, BuiltinFunction>,
+    pub ffi: FfiMetadata,
     pub functions: HashMap<String, CompiledFunction>,
 }
 

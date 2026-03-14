@@ -1,0 +1,4 @@
+func main() {
+    printIn("Hello from Kira!");
+}
+

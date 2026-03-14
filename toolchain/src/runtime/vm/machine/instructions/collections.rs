@@ -170,7 +170,6 @@ pub fn execute_array_append_local(
     match local {
         Value::Array(values) => {
             values.push(value);
-            stack.push(Value::Unit);
         }
         other => {
             return Err(RuntimeError(format!(

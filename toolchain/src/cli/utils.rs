@@ -22,22 +22,9 @@ pub fn find_project_root() -> PathBuf {
 }
 
 pub fn get_toolchain_dir() -> PathBuf {
-    #[cfg(target_os = "macos")]
-    {
-        dirs::home_dir()
-            .map(|h| h.join("Library/Application Support/Kira/toolchains"))
-            .unwrap_or_else(|| PathBuf::from("~/.kira/toolchains"))
-    }
-    #[cfg(target_os = "windows")]
-    {
-        dirs::data_local_dir()
-            .map(|d| d.join("Kira\\toolchains"))
-            .unwrap_or_else(|| PathBuf::from("%LOCALAPPDATA%\\Kira\\toolchains"))
-    }
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    {
-        dirs::home_dir()
-            .map(|h| h.join(".kira/toolchains"))
-            .unwrap_or_else(|| PathBuf::from("~/.kira/toolchains"))
-    }
+    // Keep this consistent across platforms: `~/kira/toolchains/...`
+    // (Windows will resolve `home_dir()` to the user profile directory.)
+    dirs::home_dir()
+        .map(|h| h.join("kira/toolchains"))
+        .unwrap_or_else(|| PathBuf::from("~/kira/toolchains"))
 }

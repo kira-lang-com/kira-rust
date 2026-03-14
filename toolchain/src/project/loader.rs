@@ -8,6 +8,8 @@ use super::library::resolve_dependencies;
 use super::manifest::{load_manifest, ProjectManifest};
 use super::resolver::{module_name_from_path, resolve_graph, ParsedModule};
 use super::ProjectError;
+use crate::ast::syntax::LinkDirective;
+use super::manifest::{DependencySource};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResolvedProject {
@@ -20,9 +22,14 @@ pub struct ResolvedProject {
 pub fn load_project(root: &Path) -> Result<ResolvedProject, ProjectError> {
     let manifest_path = root.join("kira.project");
     let manifest = load_manifest(&manifest_path)?;
-    
-    // Resolve dependencies first
-    let dependencies = resolve_dependencies(root, &manifest)?;
+
+    // Dependencies serve two roles:
+    // 1) Kira package dependencies (directories containing a `kira.project`)
+    // 2) Native header dependencies for auto-FFI (`.h` paths), which are converted into `@Link`.
+    let (native_links, kira_manifest) = split_native_header_dependencies(root, &manifest);
+
+    // Resolve Kira package dependencies first (skip native header dependencies).
+    let dependencies = resolve_dependencies(root, &kira_manifest)?;
     
     let entry_path = root.join(&manifest.entry);
     let entry_key = normalize_relative_path(Path::new(&manifest.entry));
@@ -138,12 +145,13 @@ pub fn load_project(root: &Path) -> Result<ResolvedProject, ProjectError> {
     }
 
     let resolved = resolve_graph(manifest.clone(), modules)?;
+    let program = merge_program_links(resolved.program, native_links);
 
     Ok(ResolvedProject {
         root: root.to_path_buf(),
         manifest,
         entry_symbol: resolved.entry_symbol,
-        program: resolved.program,
+        program,
     })
 }
 
@@ -198,4 +206,61 @@ fn normalize_relative_path(path: &Path) -> String {
         .map(|component| component.as_os_str().to_string_lossy().into_owned())
         .collect::<Vec<_>>()
         .join("/")
+}
+
+fn split_native_header_dependencies(
+    project_root: &Path,
+    manifest: &ProjectManifest,
+) -> (Vec<LinkDirective>, ProjectManifest) {
+    let mut native_links = Vec::new();
+    let mut kira_deps = Vec::new();
+
+    for dep in &manifest.dependencies {
+        let DependencySource::Path(path) = &dep.source else {
+            kira_deps.push(dep.clone());
+            continue;
+        };
+
+        // Treat `path = ".../*.h"` dependencies as native header links (auto `@Link`).
+        // If the path isn't a header file on disk, keep it as a regular Kira dependency.
+        let candidate = project_root.join(path);
+        let is_header = candidate.is_file()
+            && candidate
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .map(|ext| ext.eq_ignore_ascii_case("h"))
+                .unwrap_or(false);
+
+        if is_header {
+            native_links.push(LinkDirective {
+                library: dep.name.clone(),
+                header: path.clone(),
+                span: 0..0,
+            });
+        } else {
+            kira_deps.push(dep.clone());
+        }
+    }
+
+    let mut kira_manifest = manifest.clone();
+    kira_manifest.dependencies = kira_deps;
+
+    (native_links, kira_manifest)
+}
+
+fn merge_program_links(mut program: crate::ast::syntax::Program, links: Vec<LinkDirective>) -> crate::ast::syntax::Program {
+    if links.is_empty() {
+        return program;
+    }
+    let mut seen = std::collections::HashSet::new();
+    for link in &program.links {
+        seen.insert((link.library.clone(), link.header.clone()));
+    }
+    for link in links {
+        let key = (link.library.clone(), link.header.clone());
+        if seen.insert(key) {
+            program.links.push(link);
+        }
+    }
+    program
 }

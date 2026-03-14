@@ -20,6 +20,7 @@ pub fn type_is_native_eligible(types: &TypeSystem, type_id: TypeId) -> bool {
             .into_iter()
             .flatten()
             .all(|field| type_is_native_eligible(types, field.type_id)),
+        KiraType::Opaque(_) => true,
         _ => true,
     }
 }
@@ -37,5 +38,6 @@ pub fn is_equatable_type(types: &TypeSystem, type_id: TypeId) -> bool {
             | KiraType::String
             | KiraType::Array(_)
             | KiraType::Struct(_)
+            | KiraType::Opaque(_)
     )
 }

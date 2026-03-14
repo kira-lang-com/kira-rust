@@ -1,0 +1,16 @@
+@Export
+struct Vec2 {
+    x: float,
+    y: float,
+}
+
+@Export
+func add(a: int, b: int) -> int {
+    return a + b;
+}
+
+@Export
+func dot(a: Vec2, b: Vec2) -> float {
+    return a.x * b.x + a.y * b.y;
+}
+

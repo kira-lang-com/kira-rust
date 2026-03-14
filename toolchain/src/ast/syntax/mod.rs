@@ -13,8 +13,8 @@ pub use attributes::Attribute;
 pub use expressions::{Expression, ExpressionKind, StructLiteralField};
 pub use identifiers::{Identifier, TypeSyntax};
 pub use items::{
-    ExecutionMode, FunctionDefinition, Import, Parameter, Program, SourceFile, StructDefinition,
-    StructField, TopLevelItem,
+    ExecutionMode, FunctionDefinition, Import, LinkDirective, Parameter, Program, SourceFile,
+    StructDefinition, StructField, TopLevelItem,
 };
 pub use literals::Literal;
 pub use metadata::{PlatformGroup, PlatformsMetadata};

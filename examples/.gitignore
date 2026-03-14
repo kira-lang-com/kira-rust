@@ -1,0 +1,8 @@
+out/
+.kira-build/
+
+# Native libs produced by examples
+**/native/*.dylib
+**/native/*.so
+**/native/*.dll
+

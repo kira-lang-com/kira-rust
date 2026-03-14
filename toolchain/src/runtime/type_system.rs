@@ -33,6 +33,7 @@ pub enum KiraType {
     Array(TypeId),
     Function(FunctionType),
     Struct(StructType),
+    Opaque(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -100,6 +101,16 @@ impl TypeSystem {
             name: name.to_string(),
             fields: Vec::new(),
         }));
+        self.names.insert(name.to_string(), id);
+        Ok(id)
+    }
+
+    pub fn declare_opaque(&mut self, name: &str) -> Result<TypeId, String> {
+        if self.names.contains_key(name) {
+            return Err(format!("type `{name}` is already defined"));
+        }
+
+        let id = self.intern(KiraType::Opaque(name.to_string()));
         self.names.insert(name.to_string(), id);
         Ok(id)
     }
@@ -176,6 +187,7 @@ impl TypeSystem {
             KiraType::Array(element) => format!("[{}]", self.type_name(*element)),
             KiraType::Function(_) => "func".to_string(),
             KiraType::Struct(struct_type) => struct_type.name.clone(),
+            KiraType::Opaque(name) => name.clone(),
         }
     }
 

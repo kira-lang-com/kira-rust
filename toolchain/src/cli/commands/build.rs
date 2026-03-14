@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use std::process;
 
-use crate::aot::build_default_project;
+use crate::aot::{build_default_project, build_library_project};
 use crate::project::load_project;
 
 use super::super::utils::find_project_root;
 
-pub fn cmd_build() {
+pub fn cmd_build(lib: bool, _bin: bool) {
     let project_root = find_project_root();
     let out_root = PathBuf::from("out");
 
@@ -21,10 +21,16 @@ pub fn cmd_build() {
     println!("  Compiling {} v{}", project.manifest.name, project.manifest.version);
 
     let start = std::time::Instant::now();
-    match build_default_project(&project_root, &out_root) {
-        Ok(binary) => {
+    let result = if lib {
+        build_library_project(&project_root, &out_root)
+    } else {
+        build_default_project(&project_root, &out_root)
+    };
+
+    match result {
+        Ok(output) => {
             let elapsed = start.elapsed();
-            println!("  Finished in {:.1}s → {}", elapsed.as_secs_f64(), binary.display());
+            println!("  Finished in {:.1}s → {}", elapsed.as_secs_f64(), output.display());
         }
         Err(e) => {
             eprintln!("error: {}", e);

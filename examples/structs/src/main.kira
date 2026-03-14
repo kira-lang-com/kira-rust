@@ -1,0 +1,24 @@
+struct Vec2 {
+    x: float,
+    y: float,
+}
+
+struct Player {
+    name: string,
+    pos: Vec2,
+}
+
+func main() {
+    let p: Player = Player {
+        name: "Kira",
+        pos: Vec2 { x: 1.5, y: -2.0 },
+    };
+
+    p.pos.x = p.pos.x + 10.0;
+    p.pos.y = p.pos.y + 5.0;
+
+    printIn(p.name);
+    printIn(p.pos.x);
+    printIn(p.pos.y);
+}
+

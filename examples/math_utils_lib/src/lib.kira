@@ -1,0 +1,15 @@
+func square(n: int) -> int {
+    return n * n;
+}
+
+func cube(n: int) -> int {
+    return n * n * n;
+}
+
+func factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+

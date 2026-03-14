@@ -30,10 +30,9 @@ pub fn resolve_callee(
                 return Ok(());
             }
 
-            Err(ProjectError(format!(
-                "unknown function `{}` referenced in `{}`",
-                identifier.name, current_file
-            )))
+            // Allow unresolved callees here so later compilation stages can provide the source of truth.
+            // This is needed for compile-time generated symbols (for example, `@Link` bindings).
+            Ok(())
         }
         ExpressionKind::Member { .. } => {
             resolve_imported_callee(

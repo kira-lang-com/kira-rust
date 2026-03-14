@@ -16,6 +16,7 @@ fn parses_the_original_sample_syntax() {
     "#;
 
     let program = parse(source).expect("source should parse");
+    assert!(program.links.is_empty());
     assert!(program.imports.is_empty());
     assert_eq!(program.items.len(), 2);
 
@@ -93,6 +94,7 @@ fn parses_arrays_and_loop_constructs() {
     "#;
 
     let file = parse(source).expect("source should parse");
+    assert!(file.links.is_empty());
     let TopLevelItem::Function(function) = &file.items[0] else {
         panic!("expected function");
     };
@@ -120,6 +122,7 @@ fn parses_attributes_and_platform_metadata() {
 
     let program = parse(source).expect("source should parse");
     assert!(program.platforms.is_some());
+    assert!(program.links.is_empty());
 
     let TopLevelItem::Function(function) = &program.items[0] else {
         panic!("expected function");
@@ -159,6 +162,7 @@ fn parses_imports_and_qualified_calls() {
     "#;
 
     let file = parse(source).expect("source should parse");
+    assert!(file.links.is_empty());
     assert_eq!(file.imports.len(), 2);
     assert_eq!(file.imports[0].path[0].name, "Foundation");
     assert_eq!(file.imports[0].path[1].name, "Math");
@@ -192,6 +196,7 @@ fn parses_structs_literals_and_field_mutation() {
     "#;
 
     let file = parse(source).expect("source should parse");
+    assert!(file.links.is_empty());
     assert!(matches!(file.items[0], TopLevelItem::Struct(_)));
     assert!(matches!(file.items[1], TopLevelItem::Struct(_)));
 
@@ -201,4 +206,42 @@ fn parses_structs_literals_and_field_mutation() {
     assert!(matches!(function.body.statements[0], Statement::Let(_)));
     assert!(matches!(function.body.statements[1], Statement::Assign(_)));
     assert!(matches!(function.body.statements[2], Statement::Expression(_)));
+}
+
+#[test]
+fn parses_link_directives() {
+    let source = r#"
+        @Link("yoga", header: "yoga/Yoga.h")
+        import Foundation.Math;
+
+        func main() {}
+    "#;
+
+    let file = parse(source).expect("source should parse");
+    assert_eq!(file.links.len(), 1);
+    assert_eq!(file.links[0].library, "yoga");
+    assert_eq!(file.links[0].header, "yoga/Yoga.h");
+    assert_eq!(file.imports.len(), 1);
+    assert_eq!(file.imports[0].path[0].name, "Foundation");
+    assert_eq!(file.imports[0].path[1].name, "Math");
+}
+
+#[test]
+fn parses_export_struct_attribute() {
+    let source = r#"
+        @Export
+        struct Vec2 {
+            x: float,
+            y: float,
+        }
+    "#;
+
+    let file = parse(source).expect("source should parse");
+    assert_eq!(file.items.len(), 1);
+    let TopLevelItem::Struct(definition) = &file.items[0] else {
+        panic!("expected struct");
+    };
+    assert_eq!(definition.attributes.len(), 1);
+    assert_eq!(definition.attributes[0].name.name, "Export");
+    assert_eq!(definition.name.name, "Vec2");
 }

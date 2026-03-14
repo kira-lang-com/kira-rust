@@ -1,0 +1,28 @@
+func classify(n: int) -> string {
+    if n < 0 {
+        return "negative";
+    }
+    if n == 0 {
+        return "zero";
+    }
+    return "positive";
+}
+
+func main() {
+    printIn(classify(-5));
+    printIn(classify(0));
+    printIn(classify(12));
+
+    let sum: int = 0;
+    for i in 1..=5 {
+        sum = sum + i;
+    }
+    printIn(sum);
+
+    let x: int = 3;
+    while x > 0 {
+        printIn(x);
+        x = x - 1;
+    }
+}
+

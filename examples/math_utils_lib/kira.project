@@ -3,7 +3,3 @@ version = "1.0.0"
 kind = "library"
 entry = "src/lib.kira"
 
-[authors]
-author = "Kira Team"
-
-[dependencies]

@@ -1,6 +1,6 @@
 use std::process;
 
-use crate::compiler::compile;
+use crate::compiler::compile_project;
 use crate::project::load_project;
 
 use super::super::utils::find_project_root;
@@ -18,7 +18,7 @@ pub fn cmd_check() {
 
     println!("  Checking {} v{}", project.manifest.name, project.manifest.version);
 
-    match compile(&project.program) {
+    match compile_project(&project.program, &project_root) {
         Ok(_) => {
             println!("  ✓ No errors found");
         }

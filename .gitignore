@@ -1,10 +1,12 @@
 # Build artifacts
 target/
+toolchain/target/
 out/
 *.o
 *.a
 *.so
 *.dylib
+*.dll
 
 # Binaries
 kira

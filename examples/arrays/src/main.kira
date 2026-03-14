@@ -1,0 +1,16 @@
+func main() {
+    let numbers: [int] = [1, 2, 3];
+    numbers.append(4);
+    numbers.append(5);
+
+    printIn(numbers.length);
+    printIn(numbers[0]);
+    printIn(numbers[4]);
+
+    let total: int = 0;
+    for n in numbers {
+        total = total + n;
+    }
+    printIn(total);
+}
+

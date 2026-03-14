@@ -24,16 +24,21 @@ pub fn build_native_archive(
     codegen.write_object(&object_path)?;
 
     let archive_path = build_root.join("libkira_native.a");
-    let status = Command::new("libtool")
-        .arg("-static")
-        .arg("-o")
-        .arg(&archive_path)
-        .arg(&object_path)
+    let mut cmd = if cfg!(target_os = "macos") {
+        let mut cmd = Command::new("libtool");
+        cmd.arg("-static").arg("-o").arg(&archive_path).arg(&object_path);
+        cmd
+    } else {
+        let mut cmd = Command::new("ar");
+        cmd.arg("crus").arg(&archive_path).arg(&object_path);
+        cmd
+    };
+    let status = cmd
         .status()
-        .map_err(|error| AotError(format!("failed to invoke libtool: {error}")))?;
+        .map_err(|error| AotError(format!("failed to invoke archiver: {error}")))?;
     if !status.success() {
         return Err(AotError(
-            "libtool failed to create native archive".to_string(),
+            "archiver failed to create native archive".to_string(),
         ));
     }
     Ok(archive_path)
@@ -62,16 +67,21 @@ fn create_empty_archive(build_root: &Path) -> Result<PathBuf, AotError> {
             "clang failed to compile empty archive stub".to_string(),
         ));
     }
-    let status = Command::new("libtool")
-        .arg("-static")
-        .arg("-o")
-        .arg(&archive)
-        .arg(&empty_o)
+    let mut cmd = if cfg!(target_os = "macos") {
+        let mut cmd = Command::new("libtool");
+        cmd.arg("-static").arg("-o").arg(&archive).arg(&empty_o);
+        cmd
+    } else {
+        let mut cmd = Command::new("ar");
+        cmd.arg("crus").arg(&archive).arg(&empty_o);
+        cmd
+    };
+    let status = cmd
         .status()
         .map_err(|error| AotError(format!("failed to archive empty native stub: {error}")))?;
     if !status.success() {
         return Err(AotError(
-            "libtool failed to archive empty native stub".to_string(),
+            "archiver failed to archive empty native stub".to_string(),
         ));
     }
     Ok(archive)

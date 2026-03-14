@@ -1,4 +1,0 @@
-name = "my_app"
-version = "0.1.0"
-entry = "main.kira"
-platforms = "platform.kira"

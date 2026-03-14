@@ -1,0 +1,5 @@
+name = "export_lib"
+version = "0.1.0"
+kind = "library"
+entry = "src/lib.kira"
+

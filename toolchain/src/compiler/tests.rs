@@ -5,11 +5,16 @@ use super::{compile, BackendKind, BuildStage};
 fn parse_program(source: &str) -> Program {
     let file = parse(source).expect("source should parse");
     assert!(
+        file.links.is_empty(),
+        "single-file compiler tests should not include @Link directives"
+    );
+    assert!(
         file.imports.is_empty(),
         "single-file compiler tests should not include imports"
     );
     Program {
         platforms: file.platforms,
+        links: file.links,
         items: file.items,
     }
 }
@@ -117,6 +122,35 @@ fn resolves_attributes_platforms_and_build_time_aot_jobs() {
         module.aot_plan.jobs[0].artifact.stage,
         BuildStage::BuildTimeOnly
     );
+}
+
+#[test]
+fn platforms_default_to_host_when_metadata_exists() {
+    let host = if cfg!(target_os = "macos") {
+        "macos"
+    } else if cfg!(target_os = "windows") {
+        "windows"
+    } else {
+        "linux"
+    };
+
+    let source = r#"
+        #platforms {
+            mobile = [ios, android];
+            desktop = [macos, windows, linux];
+        }
+
+        // No @Platforms annotation: should default to host-only.
+        @Native
+        func host_only() -> int {
+            return 42;
+        }
+    "#;
+
+    let program = parse_program(source);
+    let module = compile(&program).expect("program should compile");
+
+    assert_eq!(module.functions["host_only"].target_platforms, vec![host.to_string()]);
 }
 
 #[test]

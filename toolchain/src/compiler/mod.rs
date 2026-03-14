@@ -3,6 +3,7 @@ mod artifacts;
 mod attributes;
 mod builtins;
 mod calls;
+mod ffi;
 mod eligibility;
 mod lowering;
 mod platforms;
@@ -13,8 +14,8 @@ mod tests;
 
 pub use artifacts::{
     AotArtifact, AotBuildPlan, AotJob, BackendKind, BuildStage, BuiltinFunction, Chunk,
-    CompileError, CompiledFunction, CompiledModule, FunctionArtifacts, FunctionSignature,
-    Instruction,
+    CompileError, CompiledFunction, CompiledModule, FfiFunction, FfiLink, FfiMetadata,
+    FunctionArtifacts, FunctionSignature, Instruction,
 };
 
 use std::collections::HashMap;
@@ -31,11 +32,26 @@ use platforms::build_platform_model;
 use signatures::{build_signature, collect_signatures};
 
 pub fn compile(program: &Program) -> Result<CompiledModule, CompileError> {
+    if !program.links.is_empty() {
+        return Err(CompileError(
+            "@Link directives are only supported when compiling a loaded project".to_string(),
+        ));
+    }
+    compile_impl(program, None)
+}
+
+pub fn compile_project(program: &Program, project_root: &std::path::Path) -> Result<CompiledModule, CompileError> {
+    compile_impl(program, Some(project_root))
+}
+
+fn compile_impl(program: &Program, project_root: Option<&std::path::Path>) -> Result<CompiledModule, CompileError> {
     let platform_model = build_platform_model(program.platforms.as_ref())?;
     let mut types = TypeSystem::default();
     register_struct_types(&mut types, program)?;
     let builtins = builtin_functions(&mut types);
     let mut functions = HashMap::new();
+
+    let (ffi, ffi_signatures) = ffi::build_ffi_metadata(&mut types, &program.links, project_root)?;
 
     for item in &program.items {
         if let TopLevelItem::Function(function) = item {
@@ -55,7 +71,22 @@ pub fn compile(program: &Program) -> Result<CompiledModule, CompileError> {
         }
     }
 
-    let signatures = collect_signatures(&builtins, &functions);
+    let mut signatures = collect_signatures(&builtins, &functions);
+    for (name, signature) in ffi_signatures {
+        if builtins.contains_key(&name) {
+            return Err(CompileError(format!(
+                "linked C function `{}` conflicts with an existing builtin",
+                name
+            )));
+        }
+        if functions.contains_key(&name) {
+            return Err(CompileError(format!(
+                "linked C function `{}` conflicts with a user-defined function",
+                name
+            )));
+        }
+        signatures.insert(name, signature);
+    }
 
     for item in &program.items {
         if let TopLevelItem::Function(function) = item {
@@ -69,6 +100,7 @@ pub fn compile(program: &Program) -> Result<CompiledModule, CompileError> {
             let bytecode = lower_function_body(function, &mut types, &signatures)?;
             let native_eligible =
                 is_native_eligible(function, &mut types, &signatures, &builtins)?;
+            let calls_ffi = ffi::chunk_contains_ffi_calls(&bytecode, &ffi);
 
         let selected_backend = match compiled.declared_mode {
             ExecutionMode::Runtime => BackendKind::Vm,
@@ -89,6 +121,29 @@ pub fn compile(program: &Program) -> Result<CompiledModule, CompileError> {
                     }
                 }
             };
+
+            if calls_ffi && selected_backend != BackendKind::Native {
+                return Err(CompileError(format!(
+                    "function `{}` calls a linked C function but is not compiled as native",
+                    function.name.name
+                )));
+            }
+
+            if selected_backend == BackendKind::Vm {
+                let sig = &compiled.signature;
+                if !ffi::type_is_vm_compatible(&types, sig.return_type)
+                    || sig
+                        .params
+                        .iter()
+                        .copied()
+                        .any(|type_id| !ffi::type_is_vm_compatible(&types, type_id))
+                {
+                    return Err(CompileError(format!(
+                        "function `{}` uses native-only types and cannot run in the VM",
+                        function.name.name
+                    )));
+                }
+            }
 
             let aot = if selected_backend == BackendKind::Native {
                 Some(AotArtifact {
@@ -115,6 +170,7 @@ pub fn compile(program: &Program) -> Result<CompiledModule, CompileError> {
         aot_plan,
         types,
         builtins,
+        ffi,
         functions,
     })
 }

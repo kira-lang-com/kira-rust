@@ -57,8 +57,17 @@ pub fn resolve_graph(
 
     let builtins = builtin_names();
     let mut resolved_items = Vec::new();
+    let mut resolved_links = Vec::new();
+    let mut seen_links = std::collections::HashSet::new();
     for module in modules.values() {
         let imported_namespaces = resolve_imports(module, &local_modules)?;
+        for link in &module.file.links {
+            // Preserve the first occurrence order across modules.
+            let key = (link.library.clone(), link.header.clone());
+            if seen_links.insert(key) {
+                resolved_links.push(link.clone());
+            }
+        }
         for item in &module.file.items {
             match item {
                 TopLevelItem::Struct(definition) => {
@@ -130,6 +139,7 @@ pub fn resolve_graph(
         entry_symbol,
         program: Program {
             platforms,
+            links: resolved_links,
             items: resolved_items,
         },
     })
