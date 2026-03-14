@@ -6,7 +6,7 @@ use crate::runtime::type_system::{TypeId, TypeSystem};
 
 use super::expressions::lower_expression;
 use super::types::{is_numeric_type, LocalBinding};
-use super::utils::{require_same_equatable_types, require_same_numeric_types};
+use super::chunk_helpers::{require_same_equatable_types, require_same_numeric_types};
 
 pub fn lower_cast_expression(
     target: &TypeSyntax,

@@ -8,7 +8,7 @@ use crate::runtime::Value;
 use super::expressions::lower_expression;
 use super::statements::lower_block;
 use super::types::{LocalBinding, LoopContext};
-use super::utils::{allocate_local, patch_jump, patch_jumps};
+use super::chunk_helpers::{allocate_local, patch_jump, patch_jumps};
 
 pub fn lower_for_loop(
     statement: &ForStatement,

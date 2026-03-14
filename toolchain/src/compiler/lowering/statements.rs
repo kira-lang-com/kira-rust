@@ -8,7 +8,7 @@ use super::assignments::lower_assignment;
 use super::expressions::lower_expression;
 use super::loops::lower_for_loop;
 use super::types::{LocalBinding, LoopContext};
-use super::utils::{allocate_local, ensure_local_type, patch_jump, patch_jumps};
+use super::chunk_helpers::{allocate_local, ensure_local_type, patch_jump, patch_jumps};
 
 pub fn lower_block(
     statements: &[Statement],
