@@ -6,7 +6,11 @@ mod context;
 mod control_flow;
 mod emit;
 mod instructions;
-mod runtime;
+mod runtime_arrays;
+mod runtime_base;
+mod runtime_boxing;
+mod runtime_print;
+mod runtime_structs;
 mod types;
 mod values;
 
