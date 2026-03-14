@@ -11,6 +11,9 @@ on:
         description: 'Tag to release (e.g. 0.1.0 or v0.1.0)'
         required: true
 
+permissions:
+  contents: write
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -19,7 +22,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      upload_url: ${{ steps.resolve_release.outputs.upload_url }}
       version: ${{ steps.get_version.outputs.version }}
     steps:
       - name: Get version from tag
@@ -34,16 +37,21 @@ jobs:
           echo "version=${version}" >> $GITHUB_OUTPUT
           echo "tag=${tag}" >> $GITHUB_OUTPUT
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Resolve Release
+        id: resolve_release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.get_version.outputs.tag }}
-          release_name: Kira ${{ steps.get_version.outputs.version }}
-          draft: false
-          prerelease: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          tag="${{ steps.get_version.outputs.tag }}"
+          version="${{ steps.get_version.outputs.version }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release already exists for $tag"
+          else
+            gh release create "$tag" --title "Kira $version" --generate-notes
+          fi
+          upload_url=$(gh api repos/${{ github.repository }}/releases/tags/$tag -q .upload_url)
+          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
 
   build-release:
     name: Build Release - ${{ matrix.platform.os_name }}
