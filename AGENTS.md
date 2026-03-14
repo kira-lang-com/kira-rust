@@ -4,33 +4,46 @@ This document provides guidelines for AI agents working on the Kira programming 
 
 ## Core Principles
 
-### 1. File Size Limit: 200 Lines Maximum
+### 1. File Size Limit: 275 Lines Maximum
 
-**Every source file should be under 200 lines of code.** This is a hard limit that improves:
+**Every source file should be under 275 lines of code.** This is a hard limit that improves:
 - Code readability and maintainability
 - Easier code review and debugging
 - Better separation of concerns
 - Reduced cognitive load when understanding code
 
-**When a file approaches 200 lines:**
+**When a file approaches 275 lines:**
 - Extract logical units into separate files
 - Create subdirectories to organize related functionality
 - Split large functions into smaller, focused functions in separate files
 - Use the module system to maintain clean interfaces
 
-### 2. One File, One Purpose
+**Critical: The 275-line limit is secondary to single responsibility.** If a file has multiple purposes, split it even if under 275 lines.
 
-Each file should have a single, clear responsibility:
+### 2. One File, One Purpose (STRICTLY ENFORCED)
+
+**Each file MUST have a single, clear responsibility.** This is the most important rule.
 
 **Good examples:**
 - `native_build.rs` - Handles native C library compilation
 - `ffi_loader.rs` - Manages dynamic FFI library loading
 - `run_module.rs` - Executes pre-compiled modules
+- `control_flow.rs` - Emits jump and return instructions only
+- `calls.rs` - Handles function call emission only
 
 **Bad examples:**
 - `utils.rs` with unrelated helper functions
 - `common.rs` with mixed functionality
 - Files that do "multiple things"
+- `helpers.rs` with both arithmetic AND control flow
+
+**How to identify single responsibility:**
+- Can you describe the file's purpose in one sentence?
+- Does the file name clearly indicate what it does?
+- Would a new developer know where to find this functionality?
+- Are all functions in the file related to the same concept?
+
+**If you answer "no" to any of these, split the file.**
 
 ### 3. Use Folders for Organization (Max 9 Files Per Folder)
 
@@ -181,10 +194,17 @@ mod internal; // Not re-exported
 ### When to Split a File
 
 Split when:
-- File exceeds 150 lines (before hitting 200 limit)
-- Multiple distinct responsibilities exist
+- File exceeds 250 lines (before hitting 275 limit)
+- **File has multiple distinct responsibilities** (MOST IMPORTANT)
+- Multiple unrelated concepts exist in the same file
 - Code has natural boundaries (e.g., different phases)
-- Testing becomes difficult due to size
+- Testing becomes difficult due to mixed concerns
+- File name is vague (e.g., "utils", "helpers", "common")
+
+**Priority order for splitting:**
+1. **Single responsibility violation** - Split immediately, regardless of size
+2. File size approaching 275 lines
+3. Natural boundaries suggest better organization
 
 ### How to Split
 
@@ -196,13 +216,15 @@ Split when:
 
 ### Refactoring Checklist
 
-- [ ] Each file under 200 lines
-- [ ] Clear single purpose per file
+- [ ] Each file under 275 lines
+- [ ] **Each file has ONE clear purpose (can describe in one sentence)**
+- [ ] **File name accurately describes its single responsibility**
 - [ ] Minimal nesting (max 3 levels)
 - [ ] Descriptive names throughout
 - [ ] Error handling with context
 - [ ] Documentation for public APIs
 - [ ] Tests for new functionality
+- [ ] **No "utils", "helpers", or "common" files with mixed purposes**
 
 ## Common Patterns in Kira
 
@@ -311,14 +333,19 @@ utils/
 
 When writing or reviewing code:
 
-1. **Is this file under 200 lines?**
-2. **Does this file have one clear purpose?**
-3. **Is the nesting depth reasonable (≤3 levels)?**
-4. **Are names descriptive and self-documenting?**
-5. **Is error handling comprehensive with context?**
-6. **Would a new developer understand this quickly?**
-7. **Are there tests for this functionality?**
-8. **Is this the right place for this code?**
+1. **Can I describe this file's purpose in ONE sentence?** (Most important)
+2. **Does the file name match its single responsibility?**
+3. **Is this file under 275 lines?**
+4. **Would I know where to find this functionality based on the file name?**
+5. **Are ALL functions in this file related to the same concept?**
+6. **Is the nesting depth reasonable (≤3 levels)?**
+7. **Are names descriptive and self-documenting?**
+8. **Is error handling comprehensive with context?**
+9. **Would a new developer understand this quickly?**
+10. **Are there tests for this functionality?**
+11. **Is this the right place for this code?**
+
+**If you answer "no" to questions 1, 2, 4, or 5, split the file immediately.**
 
 ## Version Control Guidelines
 
@@ -426,13 +453,15 @@ compiler/lowering/loops.rs  (contains both while and for)
 
 ## Summary
 
-- **200 lines max per file** - Hard limit, split before reaching it
-- **One purpose per file** - Clear, focused responsibility
-- **Use folders liberally** - Organize related functionality (3+ files)
+- **275 lines max per file** - Hard limit, split before reaching it
+- **ONE purpose per file** - STRICTLY ENFORCED, most important rule
+- **Single responsibility trumps line count** - Split mixed-purpose files even if small
+- **Use folders liberally** - Organize related functionality (max 9 files per folder)
 - **Avoid deep nesting** - Keep folder depth to 3-4 levels max
 - **Avoid code nesting** - Use early returns and flat control flow
 - **Commit frequently** - After each logical unit of work
 - **Push only when asked** - Never push automatically
 - **Quality matters** - Readable, maintainable, well-tested code
+- **No vague names** - Avoid "utils", "helpers", "common" for mixed-purpose files
 
 Following these guidelines ensures the Kira codebase remains clean, maintainable, and easy to work with as it grows.
