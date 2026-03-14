@@ -51,11 +51,16 @@ jobs:
             bin: kira
             name: kira-Darwin-aarch64.tar.gz
             
-          - os_name: Windows-x86_64
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-            bin: kira.exe
-            name: kira-Windows-x86_64.zip
+          # Windows builds are currently disabled because:
+          # - Pre-built LLVM binaries for Windows don't include llvm-config.exe
+          # - llvm-sys requires llvm-config to build
+          # - Building LLVM from source takes 30+ minutes in CI
+          # TODO: Re-enable once we find a solution (cached LLVM build, alternative approach, etc.)
+          # - os_name: Windows-x86_64
+          #   os: windows-latest
+          #   target: x86_64-pc-windows-msvc
+          #   bin: kira.exe
+          #   name: kira-Windows-x86_64.zip
 
     steps:
       - name: Checkout
