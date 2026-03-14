@@ -69,6 +69,9 @@ func main() {
 - Multi-file projects with implicit global scope
 - Zed editor syntax highlighting
 
+For local Zed dev-extension installs, Tree-sitter grammar compilation also requires
+`emcc`, `docker`, or `podman` to be available on `PATH`.
+
 ## Getting Started
 
 ### Prerequisites
