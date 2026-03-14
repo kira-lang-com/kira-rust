@@ -91,14 +91,18 @@ jobs:
         with:
           targets: ${{ matrix.platform.target }}
 
-      - name: Build binary
+      - name: Build binary (Unix)
+        if: matrix.platform.os != 'windows-latest'
         working-directory: toolchain
+        run: cargo build --release --target ${{ matrix.platform.target }}
+
+      - name: Build binary (Windows)
+        if: matrix.platform.os == 'windows-latest'
+        working-directory: toolchain
+        shell: pwsh
         run: |
-          if [ "${{ matrix.platform.os }}" = "windows-latest" ]; then
-            export LLVM_SYS_170_PREFIX="C:/Program Files/LLVM"
-          fi
+          $env:LLVM_SYS_170_PREFIX = "C:\Program Files\LLVM"
           cargo build --release --target ${{ matrix.platform.target }}
-        shell: bash
 
       - name: Strip binary (Unix)
         if: matrix.platform.os != 'windows-latest'
