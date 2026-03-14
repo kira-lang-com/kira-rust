@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::parser::parse;
 
+use super::library::resolve_dependencies;
 use super::manifest::{load_manifest, ProjectManifest};
 use super::resolver::{module_name_from_path, resolve_graph, ParsedModule};
 use super::ProjectError;
@@ -19,6 +20,10 @@ pub struct ResolvedProject {
 pub fn load_project(root: &Path) -> Result<ResolvedProject, ProjectError> {
     let manifest_path = root.join("kira.project");
     let manifest = load_manifest(&manifest_path)?;
+    
+    // Resolve dependencies first
+    let dependencies = resolve_dependencies(root, &manifest)?;
+    
     let entry_path = root.join(&manifest.entry);
     let entry_key = normalize_relative_path(Path::new(&manifest.entry));
     let platforms_key = manifest
@@ -43,6 +48,7 @@ pub fn load_project(root: &Path) -> Result<ResolvedProject, ProjectError> {
         }
     }
 
+    // Load project modules
     let mut modules = BTreeMap::new();
     for relative_path in collect_project_files(root, root)? {
         let key = normalize_relative_path(&relative_path);
@@ -76,6 +82,43 @@ pub fn load_project(root: &Path) -> Result<ResolvedProject, ProjectError> {
                 file,
             },
         );
+    }
+
+    // Load dependency modules
+    for dep in &dependencies {
+        for relative_path in collect_project_files(&dep.path, &dep.path)? {
+            let key = format!("{}::{}", dep.name, normalize_relative_path(&relative_path));
+            let path = dep.path.join(&relative_path);
+            let source = fs::read_to_string(&path).map_err(|error| {
+                ProjectError(format!(
+                    "failed to read dependency module `{}`: {}",
+                    path.display(),
+                    error
+                ))
+            })?;
+
+            let file = parse(&source).map_err(|errors| {
+                ProjectError(format!(
+                    "failed to parse dependency module `{}`:\n{}",
+                    path.display(),
+                    errors
+                        .into_iter()
+                        .map(|error| error.to_string())
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                ))
+            })?;
+
+            modules.insert(
+                key.clone(),
+                ParsedModule {
+                    name: format!("{}::{}", dep.name, module_name_from_path(&normalize_relative_path(&relative_path))?),
+                    relative_path: key,
+                    path,
+                    file,
+                },
+            );
+        }
     }
 
     if !modules.contains_key(&entry_key) {

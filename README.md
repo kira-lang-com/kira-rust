@@ -124,6 +124,9 @@ kira build                   # compile to native binary in out/
 kira run                     # build and run immediately
 kira check                   # type-check without compiling
 kira clean                   # remove out/ and build artifacts
+kira package                 # package a library for distribution
+kira fetch                   # fetch and cache project dependencies
+kira add <name>              # add a dependency to the project
 kira version                 # print Kira version
 kira toolchain install --dev # build and install development toolchain
 kira toolchain list          # list installed toolchains
@@ -182,6 +185,65 @@ func main() {
 }
 ```
 
+## Library System
+
+Kira supports creating and using libraries for code reuse across projects.
+
+### Creating a Library
+
+Set `kind = "library"` in your `kira.project`:
+
+```
+name = "math_utils"
+version = "1.0.0"
+kind = "library"
+entry = "src/lib.kira"
+
+[authors]
+author = "Your Name"
+```
+
+Package your library:
+```bash
+kira package
+```
+
+This creates a `.kpkg` file in the `out/` directory.
+
+### Using Libraries
+
+Add dependencies to your `kira.project`:
+
+```
+name = "my_app"
+version = "0.1.0"
+entry = "src/main.kira"
+
+[dependencies]
+math_utils = { version = "1.0.0", path = "../math_utils" }
+```
+
+Fetch dependencies:
+```bash
+kira fetch
+```
+
+Import and use in your code:
+```kira
+import math_utils;
+
+func main() {
+    let result: int = math_utils.square(5);
+    printIn(result);  // 25
+}
+```
+
+### Dependency Sources
+
+- **Registry**: `math_utils = "1.0.0"` (future feature)
+- **Local path**: `math_utils = { version = "1.0.0", path = "../math_utils" }`
+- **Git**: `math_utils = { version = "1.0.0", git = "https://github.com/user/math_utils" }` (future feature)
+
 ## Status
 
 Kira is in early development. The following works today:
@@ -196,10 +258,11 @@ Kira is in early development. The following works today:
 - ✅ Foundation standard library
 - ✅ Zed syntax highlighting
 - ✅ Structs in `@Runtime`
+- ✅ Library system with dependencies
 - 🚧 Closures
 - 🚧 Enums
 - 🚧 String interpolation
-- 🚧 Package manager
+- 🚧 Package registry
 
 ## License
 
