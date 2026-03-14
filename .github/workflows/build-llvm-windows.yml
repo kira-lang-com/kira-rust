@@ -1,0 +1,84 @@
+name: Build LLVM for Windows
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    # Run monthly to keep cache fresh (caches expire after 7 days of no use)
+    - cron: '0 0 1 * *'
+
+env:
+  LLVM_VERSION: "17.0.6"
+  LLVM_INSTALL_PREFIX: "C:\\LLVM-17"
+
+jobs:
+  build-llvm:
+    name: Build LLVM 17.0.6 for Windows
+    runs-on: windows-latest
+    
+    steps:
+      - name: Check cache
+        id: cache-llvm
+        uses: actions/cache@v4
+        with:
+          path: C:\LLVM-17
+          key: llvm-17.0.6-windows-msvc-${{ hashFiles('.github/workflows/build-llvm-windows.yml') }}
+          
+      - name: Install dependencies
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          choco install cmake ninja -y
+          
+      - name: Clone LLVM
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch llvmorg-${{ env.LLVM_VERSION }} https://github.com/llvm/llvm-project.git
+          
+      - name: Configure LLVM
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cd llvm-project
+          cmake -S llvm -B build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=MinSizeRel ^
+            -DCMAKE_INSTALL_PREFIX=${{ env.LLVM_INSTALL_PREFIX }} ^
+            -DLLVM_ENABLE_PROJECTS="" ^
+            -DLLVM_TARGETS_TO_BUILD="X86" ^
+            -DLLVM_INCLUDE_EXAMPLES=OFF ^
+            -DLLVM_INCLUDE_TESTS=OFF ^
+            -DLLVM_INCLUDE_BENCHMARKS=OFF ^
+            -DLLVM_ENABLE_BINDINGS=OFF ^
+            -DLLVM_ENABLE_OCAMLDOC=OFF ^
+            -DLLVM_ENABLE_Z3_SOLVER=OFF ^
+            -DLLVM_BUILD_TOOLS=ON
+            
+      - name: Build LLVM
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cd llvm-project\build
+          ninja
+          
+      - name: Install LLVM
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cd llvm-project\build
+          ninja install
+          
+      - name: Verify llvm-config
+        run: |
+          if (Test-Path "${{ env.LLVM_INSTALL_PREFIX }}\bin\llvm-config.exe") {
+            Write-Host "llvm-config.exe found!"
+            & "${{ env.LLVM_INSTALL_PREFIX }}\bin\llvm-config.exe" --version
+          } else {
+            Write-Error "llvm-config.exe not found!"
+            exit 1
+          }
+          
+      - name: Create cache marker
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          echo "LLVM ${{ env.LLVM_VERSION }} built on $(Get-Date)" | Out-File -FilePath "${{ env.LLVM_INSTALL_PREFIX }}\BUILD_INFO.txt"

@@ -51,16 +51,11 @@ jobs:
             bin: kira
             name: kira-Darwin-aarch64.tar.gz
             
-          # Windows builds are currently disabled because:
-          # - Pre-built LLVM binaries for Windows don't include llvm-config.exe
-          # - llvm-sys requires llvm-config to build
-          # - Building LLVM from source takes 30+ minutes in CI
-          # TODO: Re-enable once we find a solution (cached LLVM build, alternative approach, etc.)
-          # - os_name: Windows-x86_64
-          #   os: windows-latest
-          #   target: x86_64-pc-windows-msvc
-          #   bin: kira.exe
-          #   name: kira-Windows-x86_64.zip
+          - os_name: Windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bin: kira.exe
+            name: kira-Windows-x86_64.zip
 
     steps:
       - name: Checkout
@@ -83,16 +78,31 @@ jobs:
 
       - name: Install LLVM (Windows)
         if: matrix.platform.os == 'windows-latest'
-        uses: KyleMayes/install-llvm-action@v2
+        uses: actions/cache@v4
+        id: cache-llvm-windows
         with:
-          version: "17.0"
-          directory: C:\LLVM
+          path: C:\LLVM-17
+          key: llvm-17.0.6-windows-msvc-${{ hashFiles('.github/workflows/build-llvm-windows.yml') }}
+
+      - name: Check LLVM cache
+        if: matrix.platform.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (Test-Path "C:\LLVM-17\bin\llvm-config.exe") {
+            Write-Host "✓ LLVM cache found and valid"
+            & "C:\LLVM-17\bin\llvm-config.exe" --version
+          } else {
+            Write-Error "LLVM cache not found! Please run the 'Build LLVM for Windows' workflow first."
+            Write-Error "Go to: https://github.com/${{ github.repository }}/actions/workflows/build-llvm-windows.yml"
+            exit 1
+          }
 
       - name: Set LLVM environment variable (Windows)
         if: matrix.platform.os == 'windows-latest'
         shell: pwsh
         run: |
-          echo "LLVM_SYS_170_PREFIX=$env:LLVM_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "LLVM_SYS_170_PREFIX=C:\LLVM-17" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "C:\LLVM-17\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
