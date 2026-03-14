@@ -1,9 +1,13 @@
+// Function signature building and call helpers
+
 use std::collections::HashMap;
 
-use crate::ast::FunctionDefinition;
+use crate::ast::{Expression, ExpressionKind, FunctionDefinition};
 use crate::runtime::type_system::TypeSystem;
 
 use super::{BuiltinFunction, CompileError, CompiledFunction, FunctionSignature};
+
+// Signature building
 
 pub(super) fn collect_signatures(
     builtins: &HashMap<String, BuiltinFunction>,
@@ -56,4 +60,15 @@ pub(super) fn build_signature(
         return_type,
         function_type,
     })
+}
+
+// Call helpers
+
+pub(super) fn direct_callee_name(callee: &Expression) -> Result<String, CompileError> {
+    match &callee.kind {
+        ExpressionKind::Variable(identifier) => Ok(identifier.name.clone()),
+        _ => Err(CompileError(
+            "only direct function calls are supported in the current compiler".to_string(),
+        )),
+    }
 }

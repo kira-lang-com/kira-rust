@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::ast::{Expression, ExpressionKind};
-use crate::compiler::{calls::direct_callee_name, BuiltinFunction, CompileError, FunctionSignature};
+use crate::compiler::{functions::direct_callee_name, BuiltinFunction, CompileError, FunctionSignature};
 use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
 
 use super::expressions::analyze_expression;

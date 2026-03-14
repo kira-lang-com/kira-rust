@@ -1,6 +1,8 @@
-use crate::compiler::{
-    AotArtifact, AotBuildPlan, AotJob, BackendKind, BuildStage, CompiledFunction,
-};
+// Build artifacts and AOT compilation planning
+
+use super::{AotArtifact, AotBuildPlan, AotJob, BackendKind, BuildStage, CompiledFunction};
+
+// AOT build planning
 
 pub(super) fn build_aot_plan<'a>(
     functions: impl Iterator<Item = &'a CompiledFunction>,

@@ -1,37 +1,45 @@
-mod aot;
-mod artifacts;
-mod attributes;
+mod build_artifacts;
 mod builtins;
-mod calls;
 mod ffi;
 mod eligibility;
+mod functions;
 mod lowering;
+mod metadata;
 mod native_build;
-mod platforms;
-mod signatures;
+mod types;
 
 #[cfg(test)]
 mod tests;
 
-pub use artifacts::{
+pub use types::{
     AotArtifact, AotBuildPlan, AotJob, BackendKind, BuildStage, BuiltinFunction, Chunk,
-    CompileError, CompiledFunction, CompiledModule, FfiFunction, FfiLink, FfiMetadata,
+    CompiledFunction, CompiledModule, FfiFunction, FfiLink, FfiMetadata,
     FunctionArtifacts, FunctionSignature, Instruction,
 };
 pub use native_build::build_all_native_dependencies;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CompileError(pub String);
+
+impl std::fmt::Display for CompileError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for CompileError {}
 
 use std::collections::HashMap;
 
 use crate::ast::{ExecutionMode, Program, TopLevelItem};
 use crate::runtime::type_system::TypeSystem;
 
-use aot::build_aot_plan;
-use attributes::resolve_function_attributes;
+use build_artifacts::build_aot_plan;
 use builtins::builtin_functions;
 use eligibility::is_native_eligible;
+use functions::{build_signature, collect_signatures};
 use lowering::lower_function_body;
-use platforms::build_platform_model;
-use signatures::{build_signature, collect_signatures};
+use metadata::{build_platform_model, resolve_function_attributes};
 
 pub fn compile(program: &Program) -> Result<CompiledModule, CompileError> {
     if !program.links.is_empty() {
