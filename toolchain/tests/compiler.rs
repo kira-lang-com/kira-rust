@@ -1,6 +1,6 @@
-use crate::{ast::Program, parser::parse};
+use toolchain::{ast::Program, parser::parse};
 
-use super::{compile, BackendKind, BuildStage};
+use toolchain::compiler::{compile, BackendKind, BuildStage};
 
 fn parse_program(source: &str) -> Program {
     let file = parse(source).expect("source should parse");
@@ -106,7 +106,7 @@ fn resolves_attributes_platforms_and_build_time_aot_jobs() {
 
     assert_eq!(
         module.functions["square"].declared_mode,
-        crate::ast::ExecutionMode::Native
+        toolchain::ast::ExecutionMode::Native
     );
     assert_eq!(
         module.functions["square"].target_platforms,

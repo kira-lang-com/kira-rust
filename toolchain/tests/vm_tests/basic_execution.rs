@@ -1,7 +1,7 @@
 use ordered_float::OrderedFloat;
 
-use crate::compiler::compile;
-use crate::runtime::{Value, Vm};
+use toolchain::compiler::compile;
+use toolchain::runtime::{Value, Vm};
 
 use super::parse_program;
 

@@ -1,6 +1,6 @@
-use crate::{compiler::compile, runtime::vm::Vm};
+use toolchain::{compiler::compile, runtime::vm::Vm};
 
-use super::super::load_project;
+use toolchain::project::load_project;
 use super::{create_temp_project, write};
 
 #[test]

@@ -1,5 +1,5 @@
-use crate::compiler::compile;
-use crate::runtime::Vm;
+use toolchain::compiler::compile;
+use toolchain::runtime::Vm;
 
 use super::parse_program;
 

@@ -8,9 +8,6 @@ mod metadata;
 mod native_build;
 mod types;
 
-#[cfg(test)]
-mod tests;
-
 pub use types::{
     AotArtifact, AotBuildPlan, AotJob, BackendKind, BuildStage, BuiltinFunction, Chunk,
     CompiledFunction, CompiledModule, FfiFunction, FfiLink, FfiMetadata,

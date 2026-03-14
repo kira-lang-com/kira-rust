@@ -6,9 +6,9 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{compiler::compile, runtime::vm::Vm};
+use toolchain::{compiler::compile, runtime::vm::Vm};
 
-use super::load_project;
+use toolchain::project::load_project;
 
 pub fn write_manifest(root: &PathBuf, name: &str) {
     write(

@@ -2,9 +2,6 @@ mod core;
 mod infrastructure;
 mod metadata;
 
-#[cfg(test)]
-mod tests;
-
 pub use infrastructure::ParseError;
 
 use chumsky::Parser;

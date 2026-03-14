@@ -1,4 +1,4 @@
-use super::super::load_project;
+use toolchain::project::load_project;
 use super::{create_temp_project, write};
 
 #[test]

@@ -1,6 +1,6 @@
-use crate::compiler::compile;
-use crate::runtime::value::StructValue;
-use crate::runtime::{Value, Vm};
+use toolchain::compiler::compile;
+use toolchain::runtime::value::StructValue;
+use toolchain::runtime::{Value, Vm};
 
 use super::parse_program;
 

@@ -2,8 +2,8 @@ mod basic_execution;
 mod collections;
 mod control_flow;
 
-use crate::ast::Program;
-use crate::parser::parse;
+use toolchain::ast::Program;
+use toolchain::parser::parse;
 
 pub fn parse_program(source: &str) -> Program {
     let file = parse(source).expect("source should parse");

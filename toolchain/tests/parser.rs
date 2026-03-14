@@ -1,6 +1,6 @@
-use crate::ast::{ExecutionMode, Statement, TopLevelItem};
+use toolchain::ast::{ExecutionMode, Statement, TopLevelItem};
 
-use super::parse;
+use toolchain::parser::parse;
 
 #[test]
 fn parses_the_original_sample_syntax() {
@@ -57,10 +57,10 @@ fn preserves_spaces_inside_string_literals() {
     let Statement::Expression(statement) = &function.body.statements[0] else {
         panic!("expected expression statement");
     };
-    let crate::ast::ExpressionKind::Call { arguments, .. } = &statement.expression.kind else {
+    let toolchain::ast::ExpressionKind::Call { arguments, .. } = &statement.expression.kind else {
         panic!("expected call expression");
     };
-    let crate::ast::ExpressionKind::Literal(crate::ast::Literal::String(value)) =
+    let toolchain::ast::ExpressionKind::Literal(toolchain::ast::Literal::String(value)) =
         &arguments[0].kind
     else {
         panic!("expected string literal");
