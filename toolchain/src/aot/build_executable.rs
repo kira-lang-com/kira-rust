@@ -9,6 +9,7 @@ use super::runner::{build_runner_project, resolve_output_root, write_runner_proj
 
 pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<PathBuf, AotError> {
     use crate::compiler::build_all_native_dependencies;
+    use super::library::build_native_archive;
     
     let project = load_project(project_root).map_err(|error| AotError(error.to_string()))?;
     
@@ -59,17 +60,25 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
         ))
     })?;
 
+    // Build native archive for AOT-compiled functions
+    let staging_dir = out_root.join(".kira-build").join(&project.manifest.name).join("staging");
+    fs::create_dir_all(&staging_dir).map_err(|error| {
+        AotError(format!(
+            "failed to create staging directory `{}`: {}",
+            staging_dir.display(),
+            error
+        ))
+    })?;
+    let native_archive = build_native_archive(&project.manifest.name, &module, &staging_dir)?;
+
     // Generate runner project (Rust code that embeds VM and bytecode)
     let runner_dir = out_root.join(".kira-build").join(&project.manifest.name).join("runner");
-    
-    // Note: native_archive is not used for bytecode-only builds, pass a dummy path
-    let dummy_archive = runner_dir.join("dummy.a");
     write_runner_project(
         &runner_dir,
         &project.manifest.name,
         &module,
         &module_path,
-        &dummy_archive,
+        &native_archive,
         &project.entry_symbol,
     )?;
 
@@ -86,6 +95,17 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
             "failed to copy runner binary from `{}` to `{}`: {}",
             runner_binary.display(),
             final_binary.display(),
+            error
+        ))
+    })?;
+
+    // Copy the compiled module to the same directory as the executable
+    let final_module = debug_dir.join("compiled_module.bin");
+    fs::copy(&module_path, &final_module).map_err(|error| {
+        AotError(format!(
+            "failed to copy compiled module from `{}` to `{}`: {}",
+            module_path.display(),
+            final_module.display(),
             error
         ))
     })?;

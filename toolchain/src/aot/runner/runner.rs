@@ -173,10 +173,11 @@ fn generate_runner_source(
     module_bin: &Path,
     entry_symbol: &str,
 ) -> Result<String, AotError> {
+    // Only include functions that actually have native artifacts (AOT compiled)
     let native_functions = module
         .functions
         .values()
-        .filter(|function| function.selected_backend == BackendKind::Native)
+        .filter(|function| function.artifacts.aot.is_some())
         .collect::<Vec<_>>();
 
     let runtime_bridges = collect_runtime_bridges(module)?;
