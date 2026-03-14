@@ -1,120 +1,14 @@
 use std::collections::HashMap;
 
-use crate::ast::syntax::{ExpressionKind, ForStatement, Statement};
+use crate::ast::syntax::{ExpressionKind, ForStatement};
 use crate::compiler::{BuiltinFunction, CompileError, FunctionSignature};
 use crate::runtime::type_system::{KiraType, TypeSystem};
 
-use super::expressions::{analyze_assignment, analyze_expression};
-use super::types::{type_is_native_eligible, LocalBinding};
+use super::super::expressions::analyze_expression;
+use super::super::types::{type_is_native_eligible, LocalBinding};
+use super::analyze_statement;
 
-pub fn analyze_statement(
-    statement: &Statement,
-    locals: &mut HashMap<String, LocalBinding>,
-    types: &mut TypeSystem,
-    signatures: &HashMap<String, FunctionSignature>,
-    builtins: &HashMap<String, BuiltinFunction>,
-    loop_depth: usize,
-) -> Result<bool, CompileError> {
-    match statement {
-        Statement::Let(statement) => {
-            analyze_let_statement(statement, locals, types, signatures, builtins)
-        }
-        Statement::Assign(statement) => {
-            analyze_assignment(statement, locals, types, signatures, builtins)
-        }
-        Statement::Expression(statement) => {
-            let profile = analyze_expression(
-                &statement.expression,
-                locals,
-                types,
-                signatures,
-                builtins,
-                None,
-            )?;
-            Ok(profile.native_eligible)
-        }
-        Statement::Return(statement) => {
-            let profile = analyze_expression(
-                &statement.expression,
-                locals,
-                types,
-                signatures,
-                builtins,
-                None,
-            )?;
-            Ok(profile.native_eligible)
-        }
-        Statement::If(statement) => {
-            analyze_if_statement(statement, locals, types, signatures, builtins, loop_depth)
-        }
-        Statement::While(statement) => {
-            analyze_while_statement(statement, locals, types, signatures, builtins, loop_depth)
-        }
-        Statement::For(statement) => {
-            analyze_for_statement(statement, locals, types, signatures, builtins, loop_depth)
-        }
-        Statement::Break(_) | Statement::Continue(_) => {
-            if loop_depth == 0 {
-                return Err(CompileError(
-                    "loop control can only be used inside a loop".to_string(),
-                ));
-            }
-            Ok(true)
-        }
-    }
-}
-
-fn analyze_let_statement(
-    statement: &crate::ast::syntax::LetStatement,
-    locals: &mut HashMap<String, LocalBinding>,
-    types: &mut TypeSystem,
-    signatures: &HashMap<String, FunctionSignature>,
-    builtins: &HashMap<String, BuiltinFunction>,
-) -> Result<bool, CompileError> {
-    let declared = statement
-        .type_ann
-        .as_ref()
-        .map(|type_name| {
-            types.ensure_named(&type_name.name).ok_or_else(|| {
-                CompileError(format!(
-                    "unknown type `{}` on local `{}`",
-                    type_name.name, statement.name.name
-                ))
-            })
-        })
-        .transpose()?;
-    let profile = analyze_expression(
-        &statement.value,
-        locals,
-        types,
-        signatures,
-        builtins,
-        declared,
-    )?;
-    let local_type = declared.unwrap_or(profile.type_id);
-
-    if !types.is_assignable(local_type, profile.type_id) {
-        return Err(CompileError(format!(
-            "cannot assign value of type {:?} to local `{}`",
-            types.get(profile.type_id),
-            statement.name.name
-        )));
-    }
-
-    if !profile.native_eligible || !type_is_native_eligible(types, local_type) {
-        return Ok(false);
-    }
-
-    locals.insert(
-        statement.name.name.clone(),
-        LocalBinding {
-            type_id: local_type,
-        },
-    );
-    Ok(true)
-}
-
-fn analyze_if_statement(
+pub fn analyze_if_statement(
     statement: &crate::ast::syntax::IfStatement,
     locals: &mut HashMap<String, LocalBinding>,
     types: &mut TypeSystem,
@@ -173,7 +67,7 @@ fn analyze_if_statement(
     Ok(true)
 }
 
-fn analyze_while_statement(
+pub fn analyze_while_statement(
     statement: &crate::ast::syntax::WhileStatement,
     locals: &mut HashMap<String, LocalBinding>,
     types: &mut TypeSystem,
@@ -216,8 +110,7 @@ fn analyze_while_statement(
     Ok(true)
 }
 
-
-fn analyze_for_statement(
+pub fn analyze_for_statement(
     statement: &ForStatement,
     locals: &mut HashMap<String, LocalBinding>,
     types: &mut TypeSystem,
