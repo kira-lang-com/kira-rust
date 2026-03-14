@@ -1,4 +1,4 @@
-use crate::{ast::syntax::Program, parser::parse};
+use crate::{ast::Program, parser::parse};
 
 use super::{compile, BackendKind, BuildStage};
 
