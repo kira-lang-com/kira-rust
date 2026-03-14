@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
-use crate::ast::syntax::{AssignStatement, AssignTarget, Statement};
+use crate::ast::syntax::Statement;
 use crate::compiler::{Chunk, CompileError, FunctionSignature, Instruction};
-use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
+use crate::runtime::type_system::{TypeId, TypeSystem};
 
-use super::expressions::{lower_assignment, lower_expression};
+use super::assignments::lower_assignment;
+use super::expressions::lower_expression;
 use super::loops::lower_for_loop;
 use super::types::{LocalBinding, LoopContext};
 use super::utils::{allocate_local, ensure_local_type, patch_jump, patch_jumps};
