@@ -62,7 +62,7 @@ jobs:
         id: cache-llvm-windows
         with:
           path: C:\LLVM-17
-          key: llvm-17.0.6-windows-msvc-v1
+          key: llvm-17.0.6-windows-msvc-all-targets-v1
 
       - name: Check LLVM cache
         if: matrix.platform.os == 'windows-latest'
