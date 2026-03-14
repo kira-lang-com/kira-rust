@@ -1,0 +1,154 @@
+mod aot;
+mod artifacts;
+mod attributes;
+mod builtins;
+mod calls;
+mod eligibility;
+mod lowering;
+mod platforms;
+mod signatures;
+
+#[cfg(test)]
+mod tests;
+
+pub use artifacts::{
+    AotArtifact, AotBuildPlan, AotJob, BackendKind, BuildStage, BuiltinFunction, Chunk,
+    CompileError, CompiledFunction, CompiledModule, FunctionArtifacts, FunctionSignature,
+    Instruction,
+};
+
+use std::collections::HashMap;
+
+use crate::ast::syntax::{ExecutionMode, Program, TopLevelItem};
+use crate::runtime::type_system::TypeSystem;
+
+use aot::build_aot_plan;
+use attributes::resolve_function_attributes;
+use builtins::builtin_functions;
+use eligibility::is_native_eligible;
+use lowering::lower_function_body;
+use platforms::build_platform_model;
+use signatures::{build_signature, collect_signatures};
+
+pub fn compile(program: &Program) -> Result<CompiledModule, CompileError> {
+    let platform_model = build_platform_model(program.platforms.as_ref())?;
+    let mut types = TypeSystem::default();
+    register_struct_types(&mut types, program)?;
+    let builtins = builtin_functions(&mut types);
+    let mut functions = HashMap::new();
+
+    for item in &program.items {
+        if let TopLevelItem::Function(function) = item {
+            let resolved = resolve_function_attributes(function, platform_model.as_ref())?;
+            let signature = build_signature(&mut types, function)?;
+            functions.insert(
+                function.name.name.clone(),
+                CompiledFunction {
+                    name: function.name.name.clone(),
+                    declared_mode: resolved.declared_mode,
+                    target_platforms: resolved.target_platforms,
+                    selected_backend: BackendKind::Vm,
+                    signature,
+                    artifacts: FunctionArtifacts::default(),
+                },
+            );
+        }
+    }
+
+    let signatures = collect_signatures(&builtins, &functions);
+
+    for item in &program.items {
+        if let TopLevelItem::Function(function) = item {
+            let compiled = functions.get_mut(&function.name.name).ok_or_else(|| {
+                CompileError(format!(
+                    "missing function record for `{}`",
+                    function.name.name
+                ))
+            })?;
+
+            let bytecode = lower_function_body(function, &mut types, &signatures)?;
+            let native_eligible =
+                is_native_eligible(function, &mut types, &signatures, &builtins)?;
+
+        let selected_backend = match compiled.declared_mode {
+            ExecutionMode::Runtime => BackendKind::Vm,
+            ExecutionMode::Native => {
+                if !native_eligible {
+                    return Err(CompileError(format!(
+                        "function `{}` is declared native but uses features that are not yet native-lowerable",
+                        function.name.name
+                    )));
+                }
+                BackendKind::Native
+            }
+            ExecutionMode::Auto => {
+                if native_eligible {
+                        BackendKind::Native
+                    } else {
+                        BackendKind::Vm
+                    }
+                }
+            };
+
+            let aot = if selected_backend == BackendKind::Native {
+                Some(AotArtifact {
+                    symbol: format!("kira_native_{}", function.name.name),
+                    target_platforms: compiled.target_platforms.clone(),
+                    stage: BuildStage::BuildTimeOnly,
+                })
+            } else {
+                None
+            };
+
+            compiled.selected_backend = selected_backend;
+            compiled.artifacts = FunctionArtifacts {
+                bytecode: Some(bytecode),
+                aot,
+            };
+        }
+    }
+
+    let aot_plan = build_aot_plan(functions.values());
+
+    Ok(CompiledModule {
+        platforms: program.platforms.clone(),
+        aot_plan,
+        types,
+        builtins,
+        functions,
+    })
+}
+
+fn register_struct_types(types: &mut TypeSystem, program: &Program) -> Result<(), CompileError> {
+    for item in &program.items {
+        let TopLevelItem::Struct(definition) = item else {
+            continue;
+        };
+        types
+            .declare_struct(&definition.name.name)
+            .map_err(CompileError)?;
+    }
+
+    for item in &program.items {
+        let TopLevelItem::Struct(definition) = item else {
+            continue;
+        };
+
+        let mut fields = Vec::with_capacity(definition.fields.len());
+        for field in &definition.fields {
+            let type_id = types.ensure_named(&field.type_name.name).ok_or_else(|| {
+                CompileError(format!(
+                    "unknown field type `{}` on struct `{}`",
+                    field.type_name.name, definition.name.name
+                ))
+            })?;
+            fields.push((field.name.name.clone(), type_id));
+        }
+
+        types
+            .define_struct(&definition.name.name, fields)
+            .map_err(CompileError)?;
+    }
+
+    Ok(())
+}

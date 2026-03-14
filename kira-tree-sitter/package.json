@@ -1,0 +1,21 @@
+{
+  "name": "tree-sitter-kira",
+  "version": "0.1.0",
+  "description": "Tree-sitter grammar for Kira",
+  "main": "grammar.js",
+  "types": "bindings/node",
+  "tree-sitter": [
+    {
+      "scope": "source.kira",
+      "injection-regex": "^kira$"
+    }
+  ],
+  "devDependencies": {
+    "tree-sitter-cli": "^0.24.7"
+  },
+  "keywords": [
+    "tree-sitter",
+    "kira"
+  ],
+  "license": "MIT"
+}

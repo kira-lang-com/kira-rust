@@ -1,0 +1,4 @@
+#platforms {
+    mobile = [ios, android];
+    desktop = [macos, windows, linux];
+}

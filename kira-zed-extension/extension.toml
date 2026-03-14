@@ -1,0 +1,11 @@
+id = "kira"
+name = "Kira"
+version = "0.1.0"
+schema_version = 1
+authors = ["Codex"]
+description = "Syntax highlighting support for Kira."
+repository = "file:///Users/priamc/Coding/newlang-programming-language/kira-zed-extension"
+
+[grammars.kira]
+repository = "file:///Users/priamc/Coding/newlang-programming-language/kira-tree-sitter"
+rev = "HEAD"

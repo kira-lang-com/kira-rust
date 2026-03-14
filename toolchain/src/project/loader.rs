@@ -1,0 +1,158 @@
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use crate::parser::parse;
+
+use super::manifest::{load_manifest, ProjectManifest};
+use super::resolver::{module_name_from_path, resolve_graph, ParsedModule};
+use super::ProjectError;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ResolvedProject {
+    pub root: PathBuf,
+    pub manifest: ProjectManifest,
+    pub entry_symbol: String,
+    pub program: crate::ast::syntax::Program,
+}
+
+pub fn load_project(root: &Path) -> Result<ResolvedProject, ProjectError> {
+    let manifest_path = root.join("kira.project");
+    let manifest = load_manifest(&manifest_path)?;
+    let entry_path = root.join(&manifest.entry);
+    let entry_key = normalize_relative_path(Path::new(&manifest.entry));
+    let platforms_key = manifest
+        .platforms
+        .as_deref()
+        .map(|path| normalize_relative_path(Path::new(path)));
+
+    if !entry_path.is_file() {
+        return Err(ProjectError(format!(
+            "entry file `{}` does not exist",
+            manifest.entry
+        )));
+    }
+
+    if let Some(platforms_path) = manifest.platforms.as_ref() {
+        let path = root.join(platforms_path);
+        if !path.is_file() {
+            return Err(ProjectError(format!(
+                "platforms file `{}` does not exist",
+                platforms_path
+            )));
+        }
+    }
+
+    let mut modules = BTreeMap::new();
+    for relative_path in collect_project_files(root, root)? {
+        let key = normalize_relative_path(&relative_path);
+        let path = root.join(&relative_path);
+        let source = fs::read_to_string(&path).map_err(|error| {
+            ProjectError(format!(
+                "failed to read module `{}`: {}",
+                path.display(),
+                error
+            ))
+        })?;
+
+        let file = parse(&source).map_err(|errors| {
+            ProjectError(format!(
+                "failed to parse module `{}`:\n{}",
+                path.display(),
+                errors
+                    .into_iter()
+                    .map(|error| error.to_string())
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            ))
+        })?;
+
+        modules.insert(
+            key.clone(),
+            ParsedModule {
+                name: module_name_from_path(&key)?,
+                relative_path: key,
+                path,
+                file,
+            },
+        );
+    }
+
+    if !modules.contains_key(&entry_key) {
+        return Err(ProjectError(format!(
+            "entry file `{}` was not loaded",
+            manifest.entry
+        )));
+    }
+
+    if let Some(platforms_key) = platforms_key.as_ref() {
+        if !modules.contains_key(platforms_key) {
+            return Err(ProjectError(format!(
+                "platforms file `{}` was not loaded",
+                manifest.platforms.as_deref().unwrap_or_default()
+            )));
+        }
+    }
+
+    let resolved = resolve_graph(manifest.clone(), modules)?;
+
+    Ok(ResolvedProject {
+        root: root.to_path_buf(),
+        manifest,
+        entry_symbol: resolved.entry_symbol,
+        program: resolved.program,
+    })
+}
+
+fn collect_project_files(root: &Path, current: &Path) -> Result<Vec<PathBuf>, ProjectError> {
+    let mut files = Vec::new();
+    let entries = fs::read_dir(current).map_err(|error| {
+        ProjectError(format!(
+            "failed to read project directory `{}`: {}",
+            current.display(),
+            error
+        ))
+    })?;
+
+    for entry in entries {
+        let entry = entry.map_err(|error| {
+            ProjectError(format!(
+                "failed to read directory entry in `{}`: {}",
+                current.display(),
+                error
+            ))
+        })?;
+        let path = entry.path();
+        let file_type = entry.file_type().map_err(|error| {
+            ProjectError(format!("failed to inspect `{}`: {}", path.display(), error))
+        })?;
+
+        if file_type.is_dir() {
+            files.extend(collect_project_files(root, &path)?);
+            continue;
+        }
+
+        if !file_type.is_file() || path.extension().and_then(|ext| ext.to_str()) != Some("kira") {
+            continue;
+        }
+
+        let relative = path.strip_prefix(root).map_err(|error| {
+            ProjectError(format!(
+                "failed to compute relative project path for `{}`: {}",
+                path.display(),
+                error
+            ))
+        })?;
+        files.push(relative.to_path_buf());
+    }
+
+    files.sort();
+    Ok(files)
+}
+
+fn normalize_relative_path(path: &Path) -> String {
+    path.components()
+        .map(|component| component.as_os_str().to_string_lossy().into_owned())
+        .collect::<Vec<_>>()
+        .join("/")
+}

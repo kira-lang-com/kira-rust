@@ -1,0 +1,28 @@
+{
+  "grammars": [
+    {
+      "name": "kira",
+      "camelcase": "Kira",
+      "scope": "source.kira",
+      "path": ".",
+      "file-types": null,
+      "injection-regex": "^kira$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter grammar for Kira",
+    "links": {
+      "repository": "https://github.com/kira-lang-com/kira"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}

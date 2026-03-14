@@ -1,0 +1,82 @@
+struct Vec2 {
+    x: int,
+    y: int,
+}
+
+struct Stats {
+    health: int,
+    armor: int,
+}
+
+struct Player {
+    name: string,
+    position: Vec2,
+    stats: Stats,
+}
+
+@Native
+func move_player(player: Player, dx: int, dy: int) -> Player {
+    player.position.x = player.position.x + dx;
+    player.position.y = player.position.y + dy;
+    return player;
+}
+
+@Native
+func apply_damage(player: Player, damage: int) -> Player {
+    let reduced: int = max(0, damage - player.stats.armor);
+    player.stats.health = max(0, player.stats.health - reduced);
+    return player;
+}
+
+@Native
+func distance_squared(a: Vec2, b: Vec2) -> int {
+    let dx: int = b.x - a.x;
+    let dy: int = b.y - a.y;
+    return dx * dx + dy * dy;
+}
+
+@Native
+func run_struct_demo() {
+    printIn("=== Kira Struct Demo ===");
+
+    let spawn: Vec2 = Vec2 { x: 2, y: 3 };
+    let checkpoint: Vec2 = Vec2 { x: 10, y: 8 };
+
+    let hero: Player = Player {
+        name: "Kira",
+        position: spawn,
+        stats: Stats {
+            health: 100,
+            armor: 3,
+        },
+    };
+
+    let moved: Player = move_player(hero, 4, 1);
+    let damaged: Player = apply_damage(moved, 12);
+
+    printIn(hero.name);
+    printIn("Spawn stays unchanged:");
+    printIn(hero.position.x);
+    printIn(hero.position.y);
+
+    printIn("Moved player:");
+    printIn(moved.position.x);
+    printIn(moved.position.y);
+
+    printIn("Distance to checkpoint:");
+    printIn(distance_squared(moved.position, checkpoint));
+
+    printIn("After damage:");
+    printIn(damaged.stats.health);
+    printIn(damaged.stats.armor);
+
+    printIn("Original health stays unchanged:");
+    printIn(hero.stats.health);
+
+    printIn("=== Done ===");
+}
+
+@Native
+func main() {
+    run_struct_demo();
+}
