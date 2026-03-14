@@ -19,7 +19,7 @@ Once complete, the LLVM installation will be cached and reused by all subsequent
 
 ## Cache Details
 
-- **Cache Key**: `llvm-17.0.6-windows-msvc-<hash>`
+- **Cache Key**: `llvm-17.0.6-windows-msvc-v1`
 - **Cache Path**: `C:\LLVM-17`
 - **LLVM Version**: 17.0.6
 - **Build Configuration**: MinSizeRel (optimized for size)
@@ -42,7 +42,7 @@ This means the LLVM build workflow hasn't been run yet. Follow the Initial Setup
 ### Cache is stale or corrupted
 
 1. Go to repository Settings → Actions → Caches
-2. Delete the `llvm-17.0.6-windows-msvc-*` cache
+2. Delete the `llvm-17.0.6-windows-msvc-v1` cache
 3. Re-run the "Build LLVM for Windows" workflow
 
 ### Build takes too long

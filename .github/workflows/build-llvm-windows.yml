@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: C:\LLVM-17
-          key: llvm-17.0.6-windows-msvc-${{ hashFiles('.github/workflows/build-llvm-windows.yml') }}
+          key: llvm-17.0.6-windows-msvc-v1
           
       - name: Install dependencies
         if: steps.cache-llvm.outputs.cache-hit != 'true'
