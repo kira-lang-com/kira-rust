@@ -185,6 +185,27 @@ func main() {
 }
 ```
 
+## FFI (Foreign Function Interface)
+
+Kira can link with C libraries and call native functions:
+
+```kira
+@Link(library: "mylib", header: "native/mylib.h")
+
+func main() {
+    let result: int = add_numbers(5, 3);
+    printIn(result);  // 8
+}
+```
+
+The `@Link` directive:
+- Automatically parses C headers
+- Generates type-safe bindings
+- Handles native library loading at runtime
+- Supports platform-specific builds
+
+See `examples/link_ffi/` for a complete example.
+
 ## Library System
 
 Kira supports creating and using libraries for code reuse across projects.
@@ -259,10 +280,52 @@ Kira is in early development. The following works today:
 - ✅ Zed syntax highlighting
 - ✅ Structs in `@Runtime`
 - ✅ Library system with dependencies
+- ✅ FFI (Foreign Function Interface) for C libraries
 - 🚧 Closures
 - 🚧 Enums
 - 🚧 String interpolation
 - 🚧 Package registry
+
+## Codebase Architecture
+
+The Kira toolchain is built with maintainability and clarity in mind:
+
+- **150 source files**, 96.6% under 275 lines each
+- **Single responsibility principle** enforced throughout
+- **Organized folder structure** with max 9 files per folder
+- **Clean separation** between production code (`src/`) and tests (`tests/`)
+- **Well-documented** with inline comments and architectural guidelines
+
+### Key Modules
+
+- `toolchain/src/parser/` - Chumsky-based parser with core parsing logic
+- `toolchain/src/compiler/` - Type checking, lowering, and compilation
+- `toolchain/src/runtime/` - Bytecode VM and execution engine
+- `toolchain/src/aot/` - LLVM-based ahead-of-time compilation
+- `toolchain/src/project/` - Project management and dependency resolution
+- `toolchain/tests/` - Integration tests for all major components
+
+See [AGENTS.md](AGENTS.md) for detailed architectural guidelines.
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) for guidelines.
+
+### Development Setup
+
+1. Clone the repository
+2. Install Rust (latest stable) and LLVM 17
+3. Build the toolchain: `cd toolchain && cargo build`
+4. Run tests: `cargo test`
+5. Check code: `cargo check`
+
+### Code Quality Standards
+
+- Files must be under 275 lines
+- Each file has a single, clear responsibility
+- Folders contain max 9 files (target: 7)
+- Tests go in `tests/`, not `src/`
+- Follow the guidelines in [AGENTS.md](AGENTS.md)
 
 ## License
 
