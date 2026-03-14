@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::ast::syntax::{
+use crate::ast::{
     AssignStatement, AssignTarget, Block, Expression, ExpressionStatement, ForStatement,
     IfStatement, LetStatement, ReturnStatement, Statement, WhileStatement,
 };

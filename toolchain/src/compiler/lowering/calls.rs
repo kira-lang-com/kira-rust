@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast::syntax::{Expression, ExpressionKind, Identifier};
+use crate::ast::{Expression, ExpressionKind, Identifier};
 use crate::compiler::{Chunk, CompileError, FunctionSignature, Instruction};
 use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
 

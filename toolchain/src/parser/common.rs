@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::ast::syntax::Span;
+use crate::ast::Span;
 
 pub type RichError<'src> = extra::Err<Rich<'src, char>>;
 

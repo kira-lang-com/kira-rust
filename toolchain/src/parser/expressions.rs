@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::ast::syntax::{
+use crate::ast::{
     BinaryOperator, Expression, ExpressionKind, StructLiteralField, TypeSyntax, UnaryOperator,
 };
 
@@ -13,7 +13,7 @@ use super::literals::{
 enum Postfix {
     Call(Vec<Expression>),
     Index(Expression),
-    Member(crate::ast::syntax::Identifier),
+    Member(crate::ast::Identifier),
 }
 
 pub fn expression_parser<'src>(

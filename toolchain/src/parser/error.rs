@@ -1,7 +1,7 @@
 use chumsky::error::Rich;
 use chumsky::span::SimpleSpan;
 
-use crate::ast::syntax::Span;
+use crate::ast::Span;
 
 use super::common::span_to_range;
 

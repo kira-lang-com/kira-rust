@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast::syntax::{Expression, StructLiteralField, TypeSyntax};
+use crate::ast::{Expression, StructLiteralField, TypeSyntax};
 use crate::compiler::{BuiltinFunction, CompileError, FunctionSignature};
 use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
 

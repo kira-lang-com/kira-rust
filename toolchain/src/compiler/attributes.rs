@@ -1,4 +1,4 @@
-use crate::ast::syntax::{ExecutionMode, FunctionDefinition};
+use crate::ast::{ExecutionMode, FunctionDefinition};
 
 use super::{platforms::PlatformModel, CompileError};
 

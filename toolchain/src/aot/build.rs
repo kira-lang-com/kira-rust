@@ -212,7 +212,7 @@ pub fn build_library_project(project_root: &Path, out_root: &Path) -> Result<Pat
 }
 
 fn collect_export_spec(
-    program: &crate::ast::syntax::Program,
+    program: &crate::ast::Program,
     module: &crate::compiler::CompiledModule,
 ) -> Result<(ExportedApi, ExportSpec), AotError> {
     let mut exported_structs = HashSet::new();
@@ -220,7 +220,7 @@ fn collect_export_spec(
 
     for item in &program.items {
         match item {
-            crate::ast::syntax::TopLevelItem::Struct(definition) => {
+            crate::ast::TopLevelItem::Struct(definition) => {
                 if definition
                     .attributes
                     .iter()
@@ -229,7 +229,7 @@ fn collect_export_spec(
                     exported_structs.insert(definition.name.name.clone());
                 }
             }
-            crate::ast::syntax::TopLevelItem::Function(function) => {
+            crate::ast::TopLevelItem::Function(function) => {
                 if function
                     .attributes
                     .iter()

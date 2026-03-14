@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, HashMap};
 
-use crate::ast::syntax::{Block, Statement};
+use crate::ast::{Block, Statement};
 use crate::library::ImportedNamespace;
 
 use super::super::ProjectError;
@@ -112,7 +112,7 @@ pub fn resolve_block(
 }
 
 fn resolve_if_statement(
-    statement: &mut crate::ast::syntax::IfStatement,
+    statement: &mut crate::ast::IfStatement,
     current_file: &str,
     global_functions: &HashMap<String, FunctionOrigin>,
     builtins: &BTreeSet<String>,
@@ -155,7 +155,7 @@ fn resolve_if_statement(
 }
 
 fn resolve_while_statement(
-    statement: &mut crate::ast::syntax::WhileStatement,
+    statement: &mut crate::ast::WhileStatement,
     current_file: &str,
     global_functions: &HashMap<String, FunctionOrigin>,
     builtins: &BTreeSet<String>,
@@ -185,7 +185,7 @@ fn resolve_while_statement(
 }
 
 fn resolve_for_statement(
-    statement: &mut crate::ast::syntax::ForStatement,
+    statement: &mut crate::ast::ForStatement,
     current_file: &str,
     global_functions: &HashMap<String, FunctionOrigin>,
     builtins: &BTreeSet<String>,

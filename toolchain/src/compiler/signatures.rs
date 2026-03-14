@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast::syntax::FunctionDefinition;
+use crate::ast::FunctionDefinition;
 use crate::runtime::type_system::TypeSystem;
 
 use super::{BuiltinFunction, CompileError, CompiledFunction, FunctionSignature};

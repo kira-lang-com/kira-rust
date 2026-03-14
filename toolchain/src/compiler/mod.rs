@@ -22,7 +22,7 @@ pub use native_build::build_all_native_dependencies;
 
 use std::collections::HashMap;
 
-use crate::ast::syntax::{ExecutionMode, Program, TopLevelItem};
+use crate::ast::{ExecutionMode, Program, TopLevelItem};
 use crate::runtime::type_system::TypeSystem;
 
 use aot::build_aot_plan;

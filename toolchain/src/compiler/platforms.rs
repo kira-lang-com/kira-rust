@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, HashMap};
 
-use crate::ast::syntax::PlatformsMetadata;
+use crate::ast::PlatformsMetadata;
 
 use super::CompileError;
 

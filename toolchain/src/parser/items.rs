@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::ast::syntax::{
+use crate::ast::{
     ExecutionMode, FunctionDefinition, Import, LinkDirective, Parameter, SourceFile,
     StructDefinition, StructField, TopLevelItem,
 };
@@ -150,7 +150,7 @@ fn link_directive_parser<'src>(
 ) -> impl Parser<'src, &'src str, LinkDirective, RichError<'src>> + Clone {
     // `@Link("yoga", header: "yoga/Yoga.h")` (optional trailing `;`)
     let string = literals::string_literal_parser().map(|expr| {
-        let crate::ast::syntax::ExpressionKind::Literal(crate::ast::syntax::Literal::String(value)) =
+        let crate::ast::ExpressionKind::Literal(crate::ast::Literal::String(value)) =
             expr.kind
         else {
             unreachable!("string literal parser must produce a string literal");

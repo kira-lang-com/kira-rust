@@ -8,7 +8,7 @@ use super::library::resolve_dependencies;
 use super::manifest::{load_manifest, ProjectManifest};
 use super::resolver::{module_name_from_path, resolve_graph, ParsedModule};
 use super::ProjectError;
-use crate::ast::syntax::LinkDirective;
+use crate::ast::LinkDirective;
 use super::manifest::{DependencySource};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,7 +16,7 @@ pub struct ResolvedProject {
     pub root: PathBuf,
     pub manifest: ProjectManifest,
     pub entry_symbol: String,
-    pub program: crate::ast::syntax::Program,
+    pub program: crate::ast::Program,
 }
 
 pub fn load_project(root: &Path) -> Result<ResolvedProject, ProjectError> {
@@ -248,7 +248,7 @@ fn split_native_header_dependencies(
     (native_links, kira_manifest)
 }
 
-fn merge_program_links(mut program: crate::ast::syntax::Program, links: Vec<LinkDirective>) -> crate::ast::syntax::Program {
+fn merge_program_links(mut program: crate::ast::Program, links: Vec<LinkDirective>) -> crate::ast::Program {
     if links.is_empty() {
         return program;
     }

@@ -3,7 +3,7 @@ mod let_assign;
 
 use std::collections::HashMap;
 
-use crate::ast::syntax::Statement;
+use crate::ast::Statement;
 use crate::compiler::{BuiltinFunction, CompileError, FunctionSignature};
 use crate::runtime::type_system::TypeSystem;
 

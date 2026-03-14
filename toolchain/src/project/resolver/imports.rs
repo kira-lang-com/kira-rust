@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use crate::ast::syntax::{Expression, ExpressionKind, Identifier};
+use crate::ast::{Expression, ExpressionKind, Identifier};
 use crate::library::{resolve_import, ImportedNamespace};
 
 use super::super::ProjectError;

@@ -106,7 +106,7 @@ fn resolves_attributes_platforms_and_build_time_aot_jobs() {
 
     assert_eq!(
         module.functions["square"].declared_mode,
-        crate::ast::syntax::ExecutionMode::Native
+        crate::ast::ExecutionMode::Native
     );
     assert_eq!(
         module.functions["square"].target_platforms,

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast::syntax::{Expression, TypeSyntax, UnaryOperator, BinaryOperator};
+use crate::ast::{Expression, TypeSyntax, UnaryOperator, BinaryOperator};
 use crate::compiler::{Chunk, CompileError, FunctionSignature, Instruction};
 use crate::runtime::type_system::{TypeId, TypeSystem};
 

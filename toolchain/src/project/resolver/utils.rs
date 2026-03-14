@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use crate::ast::syntax::AssignTarget;
+use crate::ast::AssignTarget;
 use crate::library::LibraryImportError;
 
 use super::super::ProjectError;

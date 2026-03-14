@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 
-use crate::ast::syntax::{Program, SourceFile, TopLevelItem};
+use crate::ast::{Program, SourceFile, TopLevelItem};
 
 use super::super::{manifest::ProjectManifest, ProjectError};
 use super::functions::{resolve_function_body, FunctionOrigin};

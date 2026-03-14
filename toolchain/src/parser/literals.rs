@@ -1,7 +1,7 @@
 use chumsky::prelude::*;
 use ordered_float::OrderedFloat;
 
-use crate::ast::syntax::{Expression, ExpressionKind, Literal};
+use crate::ast::{Expression, ExpressionKind, Literal};
 
 use super::common::{pad, span_to_range, RichError};
 

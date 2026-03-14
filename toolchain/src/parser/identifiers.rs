@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::ast::syntax::{Identifier, TypeSyntax};
+use crate::ast::{Identifier, TypeSyntax};
 
 use super::common::{pad, span_to_range, symbol, RichError};
 

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::ast::syntax::LinkDirective;
+use crate::ast::LinkDirective;
 use super::{Chunk, CompileError, FfiFunction, FfiLink, FfiMetadata, FunctionSignature, Instruction};
 use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
 

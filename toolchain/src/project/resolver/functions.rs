@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, HashMap};
 
-use crate::ast::syntax::FunctionDefinition;
+use crate::ast::FunctionDefinition;
 use crate::library::ImportedNamespace;
 
 use super::super::ProjectError;

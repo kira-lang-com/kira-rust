@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::ast::syntax::Attribute;
+use crate::ast::Attribute;
 
 use super::common::{span_to_range, symbol, RichError};
 use super::identifiers::{attribute_name_parser, identifier_parser};
@@ -23,7 +23,7 @@ fn attribute_parser<'src>(
 }
 
 fn attribute_arguments_parser<'src>(
-) -> impl Parser<'src, &'src str, Vec<crate::ast::syntax::Identifier>, RichError<'src>> + Clone {
+) -> impl Parser<'src, &'src str, Vec<crate::ast::Identifier>, RichError<'src>> + Clone {
     identifier_parser()
         .separated_by(symbol(','))
         .collect::<Vec<_>>()

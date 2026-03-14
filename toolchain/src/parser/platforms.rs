@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::ast::syntax::{PlatformGroup, PlatformsMetadata};
+use crate::ast::{PlatformGroup, PlatformsMetadata};
 
 use super::common::{span_to_range, symbol, token, RichError};
 use super::identifiers::identifier_parser;

@@ -15,7 +15,7 @@ pub use error::ParseError;
 
 use chumsky::Parser;
 
-use crate::ast::syntax::SourceFile;
+use crate::ast::SourceFile;
 
 pub fn parse(source: &str) -> Result<SourceFile, Vec<ParseError>> {
     items::program_parser()

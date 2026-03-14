@@ -7,7 +7,7 @@ use super::super::expressions::analyze_expression;
 use super::super::types::{type_is_native_eligible, LocalBinding};
 
 pub fn analyze_let_statement(
-    statement: &crate::ast::syntax::LetStatement,
+    statement: &crate::ast::LetStatement,
     locals: &mut HashMap<String, LocalBinding>,
     types: &mut TypeSystem,
     signatures: &HashMap<String, FunctionSignature>,

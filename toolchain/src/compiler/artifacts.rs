@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::ast::syntax::{ExecutionMode, PlatformsMetadata};
+use crate::ast::{ExecutionMode, PlatformsMetadata};
 use crate::runtime::{
     type_system::{TypeId, TypeSystem},
     Value,

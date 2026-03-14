@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast::syntax::{ExpressionKind, ForStatement};
+use crate::ast::{ExpressionKind, ForStatement};
 use crate::compiler::{BuiltinFunction, CompileError, FunctionSignature};
 use crate::runtime::type_system::{KiraType, TypeSystem};
 
@@ -9,7 +9,7 @@ use super::super::types::{type_is_native_eligible, LocalBinding};
 use super::analyze_statement;
 
 pub fn analyze_if_statement(
-    statement: &crate::ast::syntax::IfStatement,
+    statement: &crate::ast::IfStatement,
     locals: &mut HashMap<String, LocalBinding>,
     types: &mut TypeSystem,
     signatures: &HashMap<String, FunctionSignature>,
@@ -68,7 +68,7 @@ pub fn analyze_if_statement(
 }
 
 pub fn analyze_while_statement(
-    statement: &crate::ast::syntax::WhileStatement,
+    statement: &crate::ast::WhileStatement,
     locals: &mut HashMap<String, LocalBinding>,
     types: &mut TypeSystem,
     signatures: &HashMap<String, FunctionSignature>,

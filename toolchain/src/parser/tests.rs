@@ -1,4 +1,4 @@
-use crate::ast::syntax::{ExecutionMode, Statement, TopLevelItem};
+use crate::ast::{ExecutionMode, Statement, TopLevelItem};
 
 use super::parse;
 
@@ -57,10 +57,10 @@ fn preserves_spaces_inside_string_literals() {
     let Statement::Expression(statement) = &function.body.statements[0] else {
         panic!("expected expression statement");
     };
-    let crate::ast::syntax::ExpressionKind::Call { arguments, .. } = &statement.expression.kind else {
+    let crate::ast::ExpressionKind::Call { arguments, .. } = &statement.expression.kind else {
         panic!("expected call expression");
     };
-    let crate::ast::syntax::ExpressionKind::Literal(crate::ast::syntax::Literal::String(value)) =
+    let crate::ast::ExpressionKind::Literal(crate::ast::Literal::String(value)) =
         &arguments[0].kind
     else {
         panic!("expected string literal");

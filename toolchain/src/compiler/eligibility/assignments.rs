@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast::syntax::{AssignStatement, AssignTarget};
+use crate::ast::{AssignStatement, AssignTarget};
 use crate::compiler::{BuiltinFunction, CompileError, FunctionSignature};
 use crate::runtime::type_system::{KiraType, TypeId, TypeSystem};
 

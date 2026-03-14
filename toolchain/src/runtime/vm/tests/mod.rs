@@ -2,7 +2,7 @@ mod basic_execution;
 mod collections;
 mod control_flow;
 
-use crate::ast::syntax::Program;
+use crate::ast::Program;
 use crate::parser::parse;
 
 pub fn parse_program(source: &str) -> Program {
