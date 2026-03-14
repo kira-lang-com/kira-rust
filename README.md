@@ -6,11 +6,10 @@
 
 # Kira
 
-[![CI](https://github.com/kira-lang-com/kira/workflows/CI/badge.svg)](https://github.com/kira-lang-com/kira/actions/workflows/ci.yml)
 [![Build](https://github.com/kira-lang-com/kira/workflows/Build/badge.svg)](https://github.com/kira-lang-com/kira/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-> **Note:** CI/CD runs on every commit to any branch. See [build status](.github/STATUS.md) for details.
+> **Note:** Builds run on every commit to any branch. See [build status](.github/STATUS.md) for details.
 
 A dual-mode compiled programming language — written in Rust.
 
