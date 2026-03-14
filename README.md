@@ -1,4 +1,8 @@
-![Kira Banner](Images/KiraBanner.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Images/KiraBannerDark.png">
+  <source media="(prefers-color-scheme: light)" srcset="Images/KiraBannerLight.png">
+  <img alt="Kira" src="Images/KiraBannerDark.png">
+</picture>
 
 # Kira
 
