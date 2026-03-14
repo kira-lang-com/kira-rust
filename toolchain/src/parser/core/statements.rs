@@ -5,7 +5,7 @@ use crate::ast::{
     IfStatement, LetStatement, ReturnStatement, Statement, WhileStatement,
 };
 
-use super::infrastructure::{keyword, span_to_range, symbol, RichError};
+use super::super::infrastructure::{keyword, span_to_range, symbol, RichError};
 use super::identifiers::{identifier_parser, member_identifier_parser, type_name_parser};
 
 pub fn block_parser<'src, P>(

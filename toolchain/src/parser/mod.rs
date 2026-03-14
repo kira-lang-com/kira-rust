@@ -1,10 +1,6 @@
-mod expressions;
-mod identifiers;
+mod core;
 mod infrastructure;
-mod items;
-mod literals;
 mod metadata;
-mod statements;
 
 #[cfg(test)]
 mod tests;
@@ -16,7 +12,7 @@ use chumsky::Parser;
 use crate::ast::SourceFile;
 
 pub fn parse(source: &str) -> Result<SourceFile, Vec<ParseError>> {
-    items::program_parser()
+    core::items::program_parser()
         .parse(source)
         .into_result()
         .map_err(infrastructure::convert_errors)

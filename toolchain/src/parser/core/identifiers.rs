@@ -2,7 +2,7 @@ use chumsky::prelude::*;
 
 use crate::ast::{Identifier, TypeSyntax};
 
-use super::infrastructure::{pad, span_to_range, symbol, RichError};
+use super::super::infrastructure::{pad, span_to_range, symbol, RichError};
 
 pub fn identifier_parser<'src>(
 ) -> impl Parser<'src, &'src str, Identifier, RichError<'src>> + Clone {

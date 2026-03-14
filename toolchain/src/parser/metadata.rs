@@ -5,7 +5,7 @@ use chumsky::prelude::*;
 use crate::ast::{Attribute, PlatformGroup, PlatformsMetadata};
 
 use super::infrastructure::{span_to_range, symbol, token, RichError};
-use super::identifiers::{attribute_name_parser, identifier_parser};
+use super::core::identifiers::{attribute_name_parser, identifier_parser};
 
 // Attributes
 

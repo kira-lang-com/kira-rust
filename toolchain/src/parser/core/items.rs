@@ -5,12 +5,12 @@ use crate::ast::{
     StructDefinition, StructField, TopLevelItem,
 };
 
-use super::metadata::attributes_parser;
-use super::infrastructure::{keyword, span_to_range, symbol, token, RichError};
+use super::super::metadata::attributes_parser;
+use super::super::infrastructure::{keyword, span_to_range, symbol, token, RichError};
 use super::expressions::expression_parser;
 use super::identifiers::{identifier_parser, member_identifier_parser, type_name_parser};
 use super::literals;
-use super::metadata::platforms_parser;
+use super::super::metadata::platforms_parser;
 use super::statements::block_parser;
 
 enum PreItem {

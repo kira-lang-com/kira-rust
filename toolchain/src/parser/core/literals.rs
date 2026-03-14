@@ -3,7 +3,7 @@ use ordered_float::OrderedFloat;
 
 use crate::ast::{Expression, ExpressionKind, Literal};
 
-use super::infrastructure::{pad, span_to_range, RichError};
+use super::super::infrastructure::{pad, span_to_range, RichError};
 
 pub fn string_literal_parser<'src>(
 ) -> impl Parser<'src, &'src str, Expression, RichError<'src>> + Clone {
