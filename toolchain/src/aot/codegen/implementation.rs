@@ -45,7 +45,8 @@ impl<'ctx> NativeCodegen<'ctx> {
         compiled: &'ctx CompiledModule,
         context: &'ctx Context,
     ) -> Result<Self, AotError> {
-        Target::initialize_all(&InitializationConfig::default());
+        Target::initialize_native(&InitializationConfig::default())
+            .map_err(|error| AotError(format!("failed to initialize native target: {error}")))?;
         let triple = TargetMachine::get_default_triple();
         let target = Target::from_triple(&triple)
             .map_err(|error| AotError(format!("failed to resolve LLVM target: {error}")))?;
