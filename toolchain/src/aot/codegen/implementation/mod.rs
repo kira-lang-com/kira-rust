@@ -12,6 +12,9 @@ mod runtime_boxing;
 mod runtime_print;
 mod runtime_structs;
 mod types;
-mod values;
+mod value_arrays;
+mod value_boxing;
+mod value_constants;
+mod value_structs;
 
 pub use context::NativeCodegen;
