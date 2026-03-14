@@ -1,7 +1,8 @@
 // Main codegen implementation module
 // Coordinates LLVM code generation for Kira functions
 
-mod calls;
+mod calls_dispatch;
+mod calls_emit;
 mod context;
 mod control_flow;
 mod emit_dispatch;
