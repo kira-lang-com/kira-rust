@@ -32,9 +32,9 @@ Each file should have a single, clear responsibility:
 - `common.rs` with mixed functionality
 - Files that do "multiple things"
 
-### 3. Use Folders for Organization
+### 3. Use Folders for Organization (Max 9 Files Per Folder)
 
-Organize related files into logical folder structures:
+Organize related files into logical folder structures. Keep folders to 9 files or less (excluding mod.rs):
 
 ```
 compiler/
@@ -60,6 +60,12 @@ compiler/
 - Easy to locate functionality
 - Natural boundaries between components
 - Scales well as project grows
+- Folders remain navigable (max 9 files)
+
+**When a folder exceeds 9 files:**
+- Group related files into logical subfolders
+- Each subfolder should have clear purpose
+- Maintain the 9-file limit in subfolders too
 
 ### 4. Avoid Nested Code
 
