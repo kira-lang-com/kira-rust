@@ -1,4 +1,4 @@
-use super::{BinaryOperator, Identifier, Literal, Span, TypeSyntax, UnaryOperator};
+use super::{types::{BinaryOperator, Identifier, Literal, TypeSyntax, UnaryOperator}, Span};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Expression {

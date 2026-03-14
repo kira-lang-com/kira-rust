@@ -1,4 +1,4 @@
-use super::{Attribute, Block, Identifier, PlatformsMetadata, Span, TypeSyntax};
+use super::{types::{Attribute, Identifier, PlatformsMetadata, TypeSyntax}, Block, Span};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

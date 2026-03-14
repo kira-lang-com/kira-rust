@@ -1,15 +1,14 @@
-use super::{Identifier, Span};
+use crate::ast::Span;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PlatformGroup {
-    pub name: Identifier,
-    pub members: Vec<Identifier>,
+pub struct Identifier {
+    pub name: String,
     pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PlatformsMetadata {
-    pub groups: Vec<PlatformGroup>,
+pub struct TypeSyntax {
+    pub name: String,
     pub span: Span,
 }

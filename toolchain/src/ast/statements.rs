@@ -1,4 +1,4 @@
-use super::{Expression, Identifier, Span, TypeSyntax};
+use super::{types::{Identifier, TypeSyntax}, Expression, Span};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AssignTarget {

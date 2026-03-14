@@ -1,4 +1,5 @@
-use super::{Identifier, Span};
+use crate::ast::Span;
+use super::Identifier;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Attribute {
