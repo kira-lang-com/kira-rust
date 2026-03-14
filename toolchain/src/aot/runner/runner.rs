@@ -36,11 +36,15 @@ pub fn write_runner_project(
 
     let mut build_rs = String::new();
     build_rs.push_str("fn main() {\n");
-    build_rs.push_str(&format!(
-        "    println!(\"cargo:rustc-link-search=native={}\");\n",
-        native_archive.parent().unwrap().display()
-    ));
-    build_rs.push_str("    println!(\"cargo:rustc-link-lib=static=kira_native\");\n");
+    
+    // Only link native archive if it exists (for native-compiled functions)
+    if native_archive.exists() {
+        build_rs.push_str(&format!(
+            "    println!(\"cargo:rustc-link-search=native={}\");\n",
+            native_archive.parent().unwrap().display()
+        ));
+        build_rs.push_str("    println!(\"cargo:rustc-link-lib=static=kira_native\");\n");
+    }
 
     let mut seen_paths = std::collections::HashSet::new();
     let mut seen_libs = std::collections::HashSet::new();

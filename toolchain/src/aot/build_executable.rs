@@ -5,10 +5,9 @@ use crate::compiler::compile_project;
 use crate::project::load_project;
 
 use super::error::AotError;
-use super::runner::{remove_path_if_exists, resolve_output_root};
+use super::runner::{build_runner_project, resolve_output_root, write_runner_project, get_shared_target_dir};
 
 pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<PathBuf, AotError> {
-    use std::env;
     use crate::compiler::build_all_native_dependencies;
     
     let project = load_project(project_root).map_err(|error| AotError(error.to_string()))?;
@@ -60,69 +59,38 @@ pub fn build_default_project(project_root: &Path, out_root: &Path) -> Result<Pat
         ))
     })?;
 
-    // Find the kira binary
-    let kira_binary = env::current_exe()
-        .map_err(|e| AotError(format!("Failed to get current executable path: {}", e)))?;
+    // Generate runner project (Rust code that embeds VM and bytecode)
+    let runner_dir = out_root.join(".kira-build").join(&project.manifest.name).join("runner");
     
-    // Create executable at target/debug/projectname
-    let binary_name = project.manifest.name.clone();
-    let final_binary = debug_dir.join(&binary_name);
+    // Note: native_archive is not used for bytecode-only builds, pass a dummy path
+    let dummy_archive = runner_dir.join("dummy.a");
+    write_runner_project(
+        &runner_dir,
+        &project.manifest.name,
+        &module,
+        &module_path,
+        &dummy_archive,
+        &project.entry_symbol,
+    )?;
+
+    // Build the runner project with Cargo
+    build_runner_project(&runner_dir)?;
+
+    // Copy the compiled binary to target/debug/projectname
+    let shared_target = get_shared_target_dir()?;
+    let runner_binary = shared_target.join("release").join(&project.manifest.name);
+    let final_binary = debug_dir.join(&project.manifest.name);
     
-    create_wrapper_script(&final_binary, &kira_binary, &module_path)?;
+    fs::copy(&runner_binary, &final_binary).map_err(|error| {
+        AotError(format!(
+            "failed to copy runner binary from `{}` to `{}`: {}",
+            runner_binary.display(),
+            final_binary.display(),
+            error
+        ))
+    })?;
 
     Ok(final_binary)
-}
-
-fn create_wrapper_script(
-    wrapper_path: &Path,
-    kira_binary: &Path,
-    module_path: &Path,
-) -> Result<(), AotError> {
-    #[cfg(unix)]
-    {
-        // Create a shell script that runs the compiled module via the Kira VM
-        let script = format!(
-            "#!/bin/sh\nexec \"{}\" run-module \"{}\" \"$@\"\n",
-            kira_binary.display(),
-            module_path.display()
-        );
-        fs::write(wrapper_path, script).map_err(|e| {
-            AotError(format!(
-                "failed to write executable `{}`: {}",
-                wrapper_path.display(),
-                e
-            ))
-        })?;
-        
-        // Make it executable
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = fs::metadata(wrapper_path)
-            .map_err(|e| AotError(format!("failed to get permissions: {}", e)))?
-            .permissions();
-        perms.set_mode(0o755);
-        fs::set_permissions(wrapper_path, perms)
-            .map_err(|e| AotError(format!("failed to set permissions: {}", e)))?;
-    }
-    
-    #[cfg(windows)]
-    {
-        // Create a batch file that runs the compiled module via the Kira VM
-        let script = format!(
-            "@echo off\r\n\"{}\" run-module \"{}\" %*\r\n",
-            kira_binary.display(),
-            module_path.display()
-        );
-        let bat_path = wrapper_path.with_extension("bat");
-        fs::write(&bat_path, script).map_err(|e| {
-            AotError(format!(
-                "failed to write executable `{}`: {}",
-                bat_path.display(),
-                e
-            ))
-        })?;
-    }
-    
-    Ok(())
 }
 
 pub fn run_default_project(project_root: &Path, _out_root: &Path) -> Result<i32, AotError> {
