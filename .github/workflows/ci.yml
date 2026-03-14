@@ -138,8 +138,14 @@ jobs:
       - name: Install LLVM (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          choco install llvm --version=17.0.6 --allow-downgrade --force
-          echo "LLVM_SYS_170_PREFIX=C:\Program Files\LLVM" >> $env:GITHUB_ENV
+          choco uninstall llvm -y --force
+          choco install llvm --version=17.0.6 --force
+          
+      - name: Set LLVM Path (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "LLVM_SYS_170_PREFIX=C:\Program Files\LLVM" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
