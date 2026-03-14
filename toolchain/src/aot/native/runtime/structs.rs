@@ -5,11 +5,11 @@ use inkwell::AddressSpace;
 
 use crate::runtime::type_system::TypeId;
 
-use super::super::super::error::AotError;
-use super::context::NativeCodegen;
+use crate::aot::error::AotError;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn declare_runtime_new_struct(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_new_struct(&self) -> FunctionValue<'ctx> {
         let usize_ty = self.ptr_sized_int_type();
         let handle = self.context.i8_type().ptr_type(AddressSpace::default());
         self.declare_runtime_function(
@@ -24,7 +24,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_new_struct(
+    pub(in crate::aot::native) fn call_runtime_new_struct(
         &mut self,
         ctx: PointerValue<'ctx>,
         type_id: TypeId,
@@ -43,7 +43,7 @@ impl<'ctx> NativeCodegen<'ctx> {
             .map(|v| v.into_pointer_value())
     }
 
-    pub(super) fn declare_runtime_struct_set_field(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_struct_set_field(&self) -> FunctionValue<'ctx> {
         let usize_ty = self.ptr_sized_int_type();
         self.declare_runtime_function(
             "kira_native_struct_set_field",
@@ -58,7 +58,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_struct_set_field(
+    pub(in crate::aot::native) fn call_runtime_struct_set_field(
         &mut self,
         target: PointerValue<'ctx>,
         field_index: usize,
@@ -73,7 +73,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         Ok(())
     }
 
-    pub(super) fn declare_runtime_struct_field(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_struct_field(&self) -> FunctionValue<'ctx> {
         let usize_ty = self.ptr_sized_int_type();
         let handle = self.context.i8_type().ptr_type(AddressSpace::default());
         self.declare_runtime_function(
@@ -85,7 +85,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_struct_field(
+    pub(in crate::aot::native) fn call_runtime_struct_field(
         &mut self,
         target: PointerValue<'ctx>,
         field_index: usize,
@@ -104,7 +104,7 @@ impl<'ctx> NativeCodegen<'ctx> {
             .map(|v| v.into_pointer_value())
     }
 
-    pub(super) fn declare_runtime_store_struct_field(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_store_struct_field(&self) -> FunctionValue<'ctx> {
         let usize_ty = self.ptr_sized_int_type();
         self.declare_runtime_function(
             "kira_native_store_struct_field",
@@ -120,7 +120,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_store_struct_field(
+    pub(in crate::aot::native) fn call_runtime_store_struct_field(
         &mut self,
         target: PointerValue<'ctx>,
         path: PointerValue<'ctx>,

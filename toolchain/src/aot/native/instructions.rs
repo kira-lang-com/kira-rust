@@ -5,12 +5,12 @@ use inkwell::values::{BasicValueEnum, PointerValue};
 use crate::compiler::Chunk;
 use crate::runtime::type_system::{KiraType, TypeId};
 
-use super::super::super::error::AotError;
-use super::super::super::stack::StackState;
+use crate::aot::error::AotError;
+use crate::aot::stack::StackState;
 use super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn emit_load_const(
+    pub(in crate::aot::native) fn emit_load_const(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -25,7 +25,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth, type_id, llvm_value)
     }
 
-    pub(super) fn emit_load_local(
+    pub(in crate::aot::native) fn emit_load_local(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -48,7 +48,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth, type_id, value)
     }
 
-    pub(super) fn emit_store_local(
+    pub(in crate::aot::native) fn emit_store_local(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -67,7 +67,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_ptr(local, value)
     }
 
-    pub(super) fn emit_negate(
+    pub(in crate::aot::native) fn emit_negate(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -103,7 +103,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth - 1, type_id, result)
     }
 
-    pub(super) fn emit_cast_int_to_float(
+    pub(in crate::aot::native) fn emit_cast_int_to_float(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -120,7 +120,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth - 1, self.compiled.types.float(), float.into())
     }
 
-    pub(super) fn emit_binary_arithmetic(
+    pub(in crate::aot::native) fn emit_binary_arithmetic(
         &mut self,
         instruction: &crate::compiler::Instruction,
         stack_slots: &[PointerValue<'ctx>],
@@ -202,7 +202,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth - 2, left_type, result)
     }
 
-    pub(super) fn emit_comparison_op(
+    pub(in crate::aot::native) fn emit_comparison_op(
         &mut self,
         instruction: &crate::compiler::Instruction,
         stack_slots: &[PointerValue<'ctx>],

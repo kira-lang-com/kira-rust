@@ -8,11 +8,11 @@ use crate::compiler::{Chunk, CompiledFunction, FunctionSignature};
 use crate::runtime::type_system::{KiraType, TypeId};
 use crate::runtime::Value;
 
-use super::super::super::error::AotError;
+use crate::aot::error::AotError;
 use super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn llvm_function_type(
+    pub(in crate::aot::native) fn llvm_function_type(
         &self,
         signature: &FunctionSignature,
     ) -> Result<inkwell::types::FunctionType<'ctx>, AotError> {
@@ -48,7 +48,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         }
     }
 
-    pub(super) fn llvm_basic_type(&self, type_id: TypeId) -> Option<BasicTypeEnum<'ctx>> {
+    pub(in crate::aot::native) fn llvm_basic_type(&self, type_id: TypeId) -> Option<BasicTypeEnum<'ctx>> {
         match self.compiled.types.get(type_id) {
             KiraType::Int => Some(self.context.i64_type().into()),
             KiraType::Float => Some(self.context.f64_type().into()),
@@ -64,26 +64,26 @@ impl<'ctx> NativeCodegen<'ctx> {
         }
     }
 
-    pub(super) fn value_handle_type(&self) -> BasicTypeEnum<'ctx> {
+    pub(in crate::aot::native) fn value_handle_type(&self) -> BasicTypeEnum<'ctx> {
         self.context
             .i8_type()
             .ptr_type(AddressSpace::default())
             .into()
     }
 
-    pub(super) fn ptr_sized_int_type(&self) -> inkwell::types::IntType<'ctx> {
+    pub(in crate::aot::native) fn ptr_sized_int_type(&self) -> inkwell::types::IntType<'ctx> {
         self.target_machine
             .get_target_data()
             .ptr_sized_int_type_in_context(self.context, None)
     }
 
-    pub(super) fn ptr_to_int(&self, ptr: PointerValue<'ctx>) -> Result<inkwell::values::IntValue<'ctx>, AotError> {
+    pub(in crate::aot::native) fn ptr_to_int(&self, ptr: PointerValue<'ctx>) -> Result<inkwell::values::IntValue<'ctx>, AotError> {
         self.builder
             .build_ptr_to_int(ptr, self.ptr_sized_int_type(), "ptrtoint")
             .map_err(|e| AotError(e.to_string()))
     }
 
-    pub(super) fn load_typed_ptr(
+    pub(in crate::aot::native) fn load_typed_ptr(
         &self,
         ptr: PointerValue<'ctx>,
         type_id: TypeId,
@@ -100,14 +100,14 @@ impl<'ctx> NativeCodegen<'ctx> {
             .map_err(|e| AotError(e.to_string()))
     }
 
-    pub(super) fn store_ptr(&self, ptr: PointerValue<'ctx>, value: BasicValueEnum<'ctx>) -> Result<(), AotError> {
+    pub(in crate::aot::native) fn store_ptr(&self, ptr: PointerValue<'ctx>, value: BasicValueEnum<'ctx>) -> Result<(), AotError> {
         self.builder
             .build_store(ptr, value)
             .map_err(|e| AotError(e.to_string()))?;
         Ok(())
     }
 
-    pub(super) fn load_stack(
+    pub(in crate::aot::native) fn load_stack(
         &self,
         stack_slots: &[PointerValue<'ctx>],
         slot: usize,
@@ -124,7 +124,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         }
     }
 
-    pub(super) fn store_stack(
+    pub(in crate::aot::native) fn store_stack(
         &self,
         stack_slots: &[PointerValue<'ctx>],
         slot: usize,
@@ -137,7 +137,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_ptr(ptr, value)
     }
 
-    pub(super) fn ensure_supported_signature(
+    pub(in crate::aot::native) fn ensure_supported_signature(
         &self,
         signature: &FunctionSignature,
         name: &str,
@@ -148,7 +148,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.ensure_primitive_or_unit_type(signature.return_type, name)
     }
 
-    pub(super) fn ensure_supported_chunk(
+    pub(in crate::aot::native) fn ensure_supported_chunk(
         &self,
         function: &CompiledFunction,
         chunk: &Chunk,

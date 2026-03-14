@@ -5,12 +5,12 @@ use inkwell::values::PointerValue;
 use crate::compiler::Chunk;
 use crate::runtime::type_system::{KiraType, TypeId};
 
-use super::super::super::error::AotError;
-use super::super::super::stack::StackState;
-use super::context::NativeCodegen;
+use crate::aot::error::AotError;
+use crate::aot::stack::StackState;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn emit_build_array(
+    pub(in crate::aot::native) fn emit_build_array(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -38,7 +38,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth - element_count, type_id, array_handle.into())
     }
 
-    pub(super) fn emit_array_length(
+    pub(in crate::aot::native) fn emit_array_length(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -53,7 +53,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth - 1, self.compiled.types.int(), len.into())
     }
 
-    pub(super) fn emit_array_index(
+    pub(in crate::aot::native) fn emit_array_index(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -76,7 +76,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth - 2, *element_type, element)
     }
 
-    pub(super) fn emit_array_append_local(
+    pub(in crate::aot::native) fn emit_array_append_local(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,

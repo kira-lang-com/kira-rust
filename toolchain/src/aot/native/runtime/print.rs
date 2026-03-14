@@ -3,10 +3,10 @@
 use inkwell::values::FunctionValue;
 use inkwell::AddressSpace;
 
-use super::context::NativeCodegen;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn declare_runtime_print_int(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_print_int(&self) -> FunctionValue<'ctx> {
         let ctx = self.context.i8_type().ptr_type(AddressSpace::default());
         self.declare_runtime_function(
             "kira_native_print_int",
@@ -16,7 +16,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn declare_runtime_print_bool(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_print_bool(&self) -> FunctionValue<'ctx> {
         let ctx = self.context.i8_type().ptr_type(AddressSpace::default());
         self.declare_runtime_function(
             "kira_native_print_bool",
@@ -26,7 +26,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn declare_runtime_print_float(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_print_float(&self) -> FunctionValue<'ctx> {
         let ctx = self.context.i8_type().ptr_type(AddressSpace::default());
         self.declare_runtime_function(
             "kira_native_print_float",
@@ -36,7 +36,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn declare_runtime_print_value(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_print_value(&self) -> FunctionValue<'ctx> {
         let ctx = self.context.i8_type().ptr_type(AddressSpace::default());
         let handle = self.value_handle_type();
         self.declare_runtime_function(

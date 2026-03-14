@@ -6,11 +6,11 @@ use inkwell::values::PointerValue;
 use crate::compiler::FunctionSignature;
 use crate::runtime::type_system::KiraType;
 
-use super::super::super::error::AotError;
+use crate::aot::error::AotError;
 use super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn emit_jump_if_false(
+    pub(in crate::aot::native) fn emit_jump_if_false(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -37,7 +37,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         Ok(())
     }
 
-    pub(super) fn emit_jump(
+    pub(in crate::aot::native) fn emit_jump(
         &mut self,
         target: usize,
         blocks: &[BasicBlock<'ctx>],
@@ -48,7 +48,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         Ok(())
     }
 
-    pub(super) fn emit_return(
+    pub(in crate::aot::native) fn emit_return(
         &mut self,
         signature: &FunctionSignature,
         stack_slots: &[PointerValue<'ctx>],

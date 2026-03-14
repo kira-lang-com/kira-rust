@@ -14,7 +14,7 @@ use inkwell::OptimizationLevel;
 
 use crate::compiler::{BackendKind, CompiledModule};
 
-use super::super::super::error::AotError;
+use crate::aot::error::AotError;
 
 pub struct NativeCodegen<'ctx> {
     pub(super) module: Module<'ctx>,

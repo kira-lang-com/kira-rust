@@ -3,11 +3,11 @@
 use inkwell::values::{FunctionValue, PointerValue};
 use inkwell::AddressSpace;
 
-use super::super::super::error::AotError;
-use super::context::NativeCodegen;
+use crate::aot::error::AotError;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn declare_runtime_new_array(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_new_array(&self) -> FunctionValue<'ctx> {
         let handle = self.context.i8_type().ptr_type(AddressSpace::default());
         self.declare_runtime_function(
             "kira_native_new_array",
@@ -15,7 +15,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_new_array(&mut self) -> Result<PointerValue<'ctx>, AotError> {
+    pub(in crate::aot::native) fn call_runtime_new_array(&mut self) -> Result<PointerValue<'ctx>, AotError> {
         let f = self.declare_runtime_new_array();
         let call_site = self
             .builder
@@ -28,7 +28,7 @@ impl<'ctx> NativeCodegen<'ctx> {
             .map(|v| v.into_pointer_value())
     }
 
-    pub(super) fn declare_runtime_array_push(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_array_push(&self) -> FunctionValue<'ctx> {
         self.declare_runtime_function(
             "kira_native_array_push",
             self.context.void_type().fn_type(
@@ -38,7 +38,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_array_push(
+    pub(in crate::aot::native) fn call_runtime_array_push(
         &mut self,
         array: PointerValue<'ctx>,
         value: PointerValue<'ctx>,
@@ -50,7 +50,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         Ok(())
     }
 
-    pub(super) fn declare_runtime_array_append(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_array_append(&self) -> FunctionValue<'ctx> {
         self.declare_runtime_function(
             "kira_native_array_append",
             self.context.void_type().fn_type(
@@ -60,7 +60,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_array_append(
+    pub(in crate::aot::native) fn call_runtime_array_append(
         &mut self,
         array: PointerValue<'ctx>,
         value: PointerValue<'ctx>,
@@ -72,7 +72,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         Ok(())
     }
 
-    pub(super) fn declare_runtime_array_length(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_array_length(&self) -> FunctionValue<'ctx> {
         self.declare_runtime_function(
             "kira_native_array_length",
             self.context
@@ -81,7 +81,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_array_length(
+    pub(in crate::aot::native) fn call_runtime_array_length(
         &mut self,
         array: PointerValue<'ctx>,
     ) -> Result<inkwell::values::IntValue<'ctx>, AotError> {
@@ -97,7 +97,7 @@ impl<'ctx> NativeCodegen<'ctx> {
             .map(|v| v.into_int_value())
     }
 
-    pub(super) fn declare_runtime_array_index(&self) -> FunctionValue<'ctx> {
+    pub(in crate::aot::native) fn declare_runtime_array_index(&self) -> FunctionValue<'ctx> {
         let handle = self.context.i8_type().ptr_type(AddressSpace::default());
         self.declare_runtime_function(
             "kira_native_array_index",
@@ -108,7 +108,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         )
     }
 
-    pub(super) fn call_runtime_array_index(
+    pub(in crate::aot::native) fn call_runtime_array_index(
         &mut self,
         array: PointerValue<'ctx>,
         index: inkwell::values::IntValue<'ctx>,

@@ -5,12 +5,12 @@ use inkwell::values::{BasicValueEnum, FunctionValue, PointerValue};
 use crate::compiler::{BackendKind, FunctionSignature};
 use crate::runtime::type_system::{KiraType, TypeId};
 
-use super::super::super::error::AotError;
-use super::context::NativeCodegen;
+use crate::aot::error::AotError;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
     #[allow(clippy::too_many_arguments)]
-    pub(super) fn emit_call_instruction(
+    pub(in crate::aot::native) fn emit_call_instruction(
         &mut self,
         function_value: FunctionValue<'ctx>,
         ctx_arg: PointerValue<'ctx>,
@@ -88,7 +88,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.emit_print_in(ctx_arg, arg_type, arg)
     }
 
-    pub(super) fn emit_print_in(
+    pub(in crate::aot::native) fn emit_print_in(
         &mut self,
         ctx_arg: PointerValue<'ctx>,
         type_id: TypeId,
@@ -137,7 +137,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         Ok(())
     }
 
-    pub(super) fn emit_call(
+    pub(in crate::aot::native) fn emit_call(
         &mut self,
         _function_value: FunctionValue<'ctx>,
         ctx_arg: PointerValue<'ctx>,

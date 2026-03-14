@@ -5,12 +5,12 @@ use inkwell::values::{FunctionValue, PointerValue};
 use crate::compiler::{Chunk, CompiledFunction, FunctionSignature};
 use crate::runtime::type_system::TypeId;
 
-use super::super::super::error::AotError;
-use super::super::super::stack::infer_stack_layout;
+use crate::aot::error::AotError;
+use crate::aot::stack::infer_stack_layout;
 use super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn emit_function(
+    pub(in crate::aot::native) fn emit_function(
         &mut self,
         function: &CompiledFunction,
         chunk: &Chunk,

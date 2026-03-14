@@ -5,11 +5,11 @@ use inkwell::values::{BasicValueEnum, PointerValue};
 use crate::runtime::type_system::TypeId;
 use crate::runtime::Value;
 
-use super::super::super::error::AotError;
-use super::context::NativeCodegen;
+use crate::aot::error::AotError;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn llvm_const(&mut self, value: &Value) -> Result<(TypeId, BasicValueEnum<'ctx>), AotError> {
+    pub(in crate::aot::native) fn llvm_const(&mut self, value: &Value) -> Result<(TypeId, BasicValueEnum<'ctx>), AotError> {
         Ok(match value {
             Value::Bool(b) => (self.compiled.types.bool(), self.context.bool_type().const_int(*b as u64, false).into()),
             Value::Int(i) => (self.compiled.types.int(), self.context.i64_type().const_int(*i as u64, true).into()),
@@ -56,7 +56,7 @@ impl<'ctx> NativeCodegen<'ctx> {
             .map(|v| v.into_pointer_value())
     }
 
-    pub(super) fn const_usize_path(
+    pub(in crate::aot::native) fn const_usize_path(
         &mut self,
         path: &[usize],
         name: &str,

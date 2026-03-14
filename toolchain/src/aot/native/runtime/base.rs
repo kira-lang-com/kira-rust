@@ -2,10 +2,10 @@
 
 use inkwell::values::FunctionValue;
 
-use super::context::NativeCodegen;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn declare_runtime_function(
+    pub(in crate::aot::native) fn declare_runtime_function(
         &self,
         name: &str,
         fn_type: inkwell::types::FunctionType<'ctx>,

@@ -5,12 +5,12 @@ use inkwell::values::PointerValue;
 use crate::compiler::Chunk;
 use crate::runtime::type_system::{KiraType, TypeId};
 
-use super::super::super::error::AotError;
-use super::super::super::stack::StackState;
-use super::context::NativeCodegen;
+use crate::aot::error::AotError;
+use crate::aot::stack::StackState;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn emit_build_struct(
+    pub(in crate::aot::native) fn emit_build_struct(
         &mut self,
         ctx_arg: PointerValue<'ctx>,
         stack_slots: &[PointerValue<'ctx>],
@@ -54,7 +54,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth - field_count, type_id, struct_handle.into())
     }
 
-    pub(super) fn emit_struct_field(
+    pub(in crate::aot::native) fn emit_struct_field(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,
@@ -79,7 +79,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         self.store_stack(stack_slots, depth - 1, field_type, field_value)
     }
 
-    pub(super) fn emit_store_local_field(
+    pub(in crate::aot::native) fn emit_store_local_field(
         &mut self,
         stack_slots: &[PointerValue<'ctx>],
         depth: usize,

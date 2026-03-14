@@ -7,13 +7,13 @@ use inkwell::{FloatPredicate, IntPredicate};
 use crate::compiler::{Chunk, FunctionSignature, Instruction};
 use crate::runtime::type_system::{KiraType, TypeId};
 
-use super::super::super::error::AotError;
-use super::super::super::stack::StackState;
+use crate::aot::error::AotError;
+use crate::aot::stack::StackState;
 use super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
     #[allow(clippy::too_many_arguments)]
-    pub(super) fn emit_instruction(
+    pub(in crate::aot::native) fn emit_instruction(
         &mut self,
         function_value: FunctionValue<'ctx>,
         ctx_arg: PointerValue<'ctx>,
@@ -151,7 +151,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         Ok(())
     }
 
-    pub(super) fn emit_comparison(
+    pub(in crate::aot::native) fn emit_comparison(
         &mut self,
         instruction: &Instruction,
         type_id: TypeId,

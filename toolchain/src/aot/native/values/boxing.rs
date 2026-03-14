@@ -4,18 +4,18 @@ use inkwell::values::{BasicValueEnum, PointerValue};
 
 use crate::runtime::type_system::{KiraType, TypeId};
 
-use super::super::super::error::AotError;
-use super::context::NativeCodegen;
+use crate::aot::error::AotError;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn is_value_handle_type(&self, type_id: TypeId) -> bool {
+    pub(in crate::aot::native) fn is_value_handle_type(&self, type_id: TypeId) -> bool {
         matches!(
             self.compiled.types.get(type_id),
             KiraType::String | KiraType::Dynamic | KiraType::Array(_) | KiraType::Struct(_)
         )
     }
 
-    pub(super) fn box_value_as_handle(
+    pub(in crate::aot::native) fn box_value_as_handle(
         &mut self,
         type_id: TypeId,
         value: BasicValueEnum<'ctx>,
@@ -69,7 +69,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         })
     }
 
-    pub(super) fn unbox_handle_if_needed(
+    pub(in crate::aot::native) fn unbox_handle_if_needed(
         &mut self,
         type_id: TypeId,
         handle: PointerValue<'ctx>,
@@ -112,7 +112,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         })
     }
 
-    pub(super) fn clone_value_handle(&mut self, value: BasicValueEnum<'ctx>) -> Result<BasicValueEnum<'ctx>, AotError> {
+    pub(in crate::aot::native) fn clone_value_handle(&mut self, value: BasicValueEnum<'ctx>) -> Result<BasicValueEnum<'ctx>, AotError> {
         let clone = self.declare_runtime_clone_value();
         let call_site = self
             .builder

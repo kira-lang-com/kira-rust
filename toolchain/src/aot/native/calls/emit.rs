@@ -1,16 +1,17 @@
 // Function call emission (FFI, native, bridge)
 
+use inkwell::types::BasicType;
 use inkwell::values::{BasicValueEnum, FunctionValue, PointerValue};
 
 use crate::compiler::FunctionSignature;
 use crate::runtime::type_system::KiraType;
 
-use super::super::super::error::AotError;
-use super::super::super::utils::mangle_ident;
-use super::context::NativeCodegen;
+use crate::aot::error::AotError;
+use crate::aot::utils::mangle_ident;
+use super::super::context::NativeCodegen;
 
 impl<'ctx> NativeCodegen<'ctx> {
-    pub(super) fn emit_ffi_call(
+    pub(in crate::aot::native) fn emit_ffi_call(
         &mut self,
         callee: &str,
         signature: &FunctionSignature,
@@ -35,7 +36,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         }
     }
 
-    pub(super) fn emit_native_call(
+    pub(in crate::aot::native) fn emit_native_call(
         &mut self,
         callee: &str,
         signature: &FunctionSignature,
@@ -64,7 +65,7 @@ impl<'ctx> NativeCodegen<'ctx> {
         }
     }
 
-    pub(super) fn emit_bridge_call(
+    pub(in crate::aot::native) fn emit_bridge_call(
         &mut self,
         callee: &str,
         signature: &FunctionSignature,
