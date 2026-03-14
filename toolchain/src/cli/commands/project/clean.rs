@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process;
 
 pub fn cmd_clean() {
-    let out_dir = PathBuf::from("out");
+    let out_dir = PathBuf::from("target");
 
     if !out_dir.exists() {
         println!("  Nothing to clean");

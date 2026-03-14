@@ -61,7 +61,7 @@ enum Commands {
     /// Package a library for distribution
     Package {
         /// Output directory for the package
-        #[arg(short, long, default_value = "out")]
+        #[arg(short, long, default_value = "target")]
         output: PathBuf,
     },
     /// Fetch and cache project dependencies

@@ -229,7 +229,7 @@ fn copy_dir_recursive_filtered(src: &Path, dst: &Path) -> Result<(), String> {
         let name = entry.file_name();
         let name = name.to_string_lossy();
 
-        if name == "target" || name == ".git" || name == "out" {
+        if name == "target" || name == ".git" {
             continue;
         }
 

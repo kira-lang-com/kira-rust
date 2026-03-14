@@ -214,7 +214,7 @@ fn add_kira_files_to_tar<W: std::io::Write>(
         if path.is_dir() {
             // Skip common directories
             let dir_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-            if dir_name == "out" || dir_name == "target" || dir_name.starts_with('.') {
+            if dir_name == "target" || dir_name.starts_with('.') {
                 continue;
             }
             add_kira_files_to_tar(tar, project_root, &path)?;
