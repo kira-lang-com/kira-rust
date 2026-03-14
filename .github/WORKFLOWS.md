@@ -41,7 +41,6 @@ This document describes the CI/CD workflows configured for the Kira project.
 
 **Platforms:**
 - Linux x86_64 (`x86_64-unknown-linux-gnu`)
-- macOS x86_64 (`x86_64-apple-darwin`)
 - macOS aarch64 (`aarch64-apple-darwin`)
 - Windows x86_64 (`x86_64-pc-windows-msvc`)
 
@@ -66,7 +65,6 @@ This document describes the CI/CD workflows configured for the Kira project.
 
 **Release Assets:**
 - `kira-Linux-x86_64.tar.gz` + `.sha256`
-- `kira-Darwin-x86_64.tar.gz` + `.sha256`
 - `kira-Darwin-aarch64.tar.gz` + `.sha256`
 - `kira-Windows-x86_64.zip` + `.sha256`
 

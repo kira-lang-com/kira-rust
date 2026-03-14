@@ -35,7 +35,6 @@ on:
 
 **Builds:**
 - ✅ Linux x86_64 binary
-- ✅ macOS x86_64 binary (Intel)
 - ✅ macOS aarch64 binary (Apple Silicon)
 - ✅ Windows x86_64 binary
 

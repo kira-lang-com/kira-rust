@@ -32,7 +32,6 @@ This page shows the current status of all CI/CD workflows for the Kira project.
 | Platform | Architecture | Status |
 |----------|-------------|--------|
 | Linux | x86_64 | ✅ Supported |
-| macOS | x86_64 (Intel) | ✅ Supported |
 | macOS | aarch64 (Apple Silicon) | ✅ Supported |
 | Windows | x86_64 | ✅ Supported |
 

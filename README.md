@@ -89,7 +89,6 @@ For local Zed dev-extension installs, Tree-sitter grammar compilation also requi
 Download the latest release for your platform from the [Releases page](https://github.com/kira-lang-com/kira/releases):
 
 - **Linux**: `kira-Linux-x86_64.tar.gz`
-- **macOS (Intel)**: `kira-Darwin-x86_64.tar.gz`
 - **macOS (Apple Silicon)**: `kira-Darwin-aarch64.tar.gz`
 - **Windows**: `kira-Windows-x86_64.zip`
 

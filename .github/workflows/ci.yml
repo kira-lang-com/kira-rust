@@ -23,6 +23,7 @@ jobs:
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 17
+          sudo apt-get install -y llvm-17-dev libpolly-17-dev
           echo "LLVM_SYS_170_PREFIX=/usr/lib/llvm-17" >> $GITHUB_ENV
 
       - name: Install Rust toolchain
@@ -78,6 +79,7 @@ jobs:
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 17
+          sudo apt-get install -y llvm-17-dev libpolly-17-dev
           echo "LLVM_SYS_170_PREFIX=/usr/lib/llvm-17" >> $GITHUB_ENV
 
       - name: Install Rust toolchain
@@ -124,6 +126,7 @@ jobs:
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 17
+          sudo apt-get install -y llvm-17-dev libpolly-17-dev
           echo "LLVM_SYS_170_PREFIX=/usr/lib/llvm-17" >> $GITHUB_ENV
 
       - name: Install LLVM (macOS)
@@ -135,7 +138,7 @@ jobs:
       - name: Install LLVM (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          choco install llvm --version=17.0.6
+          choco install llvm --version=17.0.6 --allow-downgrade --force
           echo "LLVM_SYS_170_PREFIX=C:\Program Files\LLVM" >> $env:GITHUB_ENV
 
       - name: Install Rust toolchain
